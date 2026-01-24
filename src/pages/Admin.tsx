@@ -10,8 +10,6 @@ export default function Admin() {
   const [provas, setProvas] = useState<Prova[]>([]);
   const [loading, setLoading] = useState(true);
   const [novaProva, setNovaProva] = useState({ tipo: '', descricao: '', data_prova: '' });
-  const [liderId, setLiderId] = useState('');
-  const [anjoId, setAnjoId] = useState('');
   const [novoParticipante, setNovoParticipante] = useState({ nome: '', foto_url: '' });
 
   useEffect(() => {
@@ -90,12 +88,7 @@ export default function Admin() {
     }
   };
 
-  const definirLider = async () => {
-    if (!liderId) {
-      alert('Selecione um líder');
-      return;
-    }
-
+  const definirLider = async (participanteId: string) => {
     try {
       // Remover líder atual
       await supabase.from('participantes').update({ lider: false }).neq('id', '00000000-0000-0000-0000-000000000000');
@@ -104,11 +97,10 @@ export default function Admin() {
       const { error } = await supabase
         .from('participantes')
         .update({ lider: true })
-        .eq('id', liderId);
+        .eq('id', participanteId);
 
       if (error) throw error;
       alert('Líder definido com sucesso! 👑');
-      setLiderId('');
       loadData();
     } catch (error) {
       console.error('Erro ao definir líder:', error);
@@ -116,12 +108,7 @@ export default function Admin() {
     }
   };
 
-  const definirAnjo = async () => {
-    if (!anjoId) {
-      alert('Selecione um anjo');
-      return;
-    }
-
+  const definirAnjo = async (participanteId: string) => {
     try {
       // Remover anjo atual
       await supabase.from('participantes').update({ anjo: false }).neq('id', '00000000-0000-0000-0000-000000000000');
@@ -130,11 +117,10 @@ export default function Admin() {
       const { error } = await supabase
         .from('participantes')
         .update({ anjo: true })
-        .eq('id', anjoId);
+        .eq('id', participanteId);
 
       if (error) throw error;
       alert('Anjo definido com sucesso! 😇');
-      setAnjoId('');
       loadData();
     } catch (error) {
       console.error('Erro ao definir anjo:', error);
@@ -238,61 +224,6 @@ export default function Admin() {
         </button>
       </div>
 
-      {/* Líder e Anjo */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Definir Líder */}
-        <div className="glass rounded-2xl p-6">
-          <h2 className="text-2xl font-bold text-white mb-6">👑 Definir Líder</h2>
-          <select
-            value={liderId}
-            onChange={(e) => setLiderId(e.target.value)}
-            className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500 mb-4"
-          >
-            <option value="">Selecione o líder...</option>
-            {participantes
-              .filter((p) => p.ativo)
-              .map((participante) => (
-                <option key={participante.id} value={participante.id}>
-                  {participante.nome}
-                </option>
-              ))}
-          </select>
-          <button
-            onClick={definirLider}
-            disabled={!liderId}
-            className="w-full py-3 rounded-lg bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Definir Líder
-          </button>
-        </div>
-
-        {/* Definir Anjo */}
-        <div className="glass rounded-2xl p-6">
-          <h2 className="text-2xl font-bold text-white mb-6">😇 Definir Anjo</h2>
-          <select
-            value={anjoId}
-            onChange={(e) => setAnjoId(e.target.value)}
-            className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
-          >
-            <option value="">Selecione o anjo...</option>
-            {participantes
-              .filter((p) => p.ativo)
-              .map((participante) => (
-                <option key={participante.id} value={participante.id}>
-                  {participante.nome}
-                </option>
-              ))}
-          </select>
-          <button
-            onClick={definirAnjo}
-            disabled={!anjoId}
-            className="w-full py-3 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Definir Anjo
-          </button>
-        </div>
-      </div>
-
       {/* Adicionar Participante */}
       <div className="glass rounded-2xl p-6">
         <h2 className="text-2xl font-bold text-white mb-6">➕ Adicionar Participante</h2>
@@ -347,23 +278,53 @@ export default function Admin() {
                     className="w-12 h-12 rounded-full object-cover"
                   />
                 )}
-                <div>
-                  <h3 className="text-white font-semibold">{participante.nome}</h3>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-white font-semibold">{participante.nome}</h3>
+                    {participante.lider && <span className="text-lg">👑</span>}
+                    {participante.anjo && <span className="text-lg">😇</span>}
+                  </div>
                   <p className="text-white/60 text-sm">
                     {participante.ativo ? 'Ativo' : 'Eliminado'}
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => toggleParticipanteAtivo(participante.id, participante.ativo)}
-                className={`w-full py-2 rounded-lg font-medium transition-all ${
-                  participante.ativo
-                    ? 'bg-red-500/20 text-red-200 hover:bg-red-500/30'
-                    : 'bg-green-500/20 text-green-200 hover:bg-green-500/30'
-                }`}
-              >
-                {participante.ativo ? 'Eliminar' : 'Reativar'}
-              </button>
+              <div className="space-y-2">
+                {participante.ativo && (
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => definirLider(participante.id)}
+                      className={`py-1.5 px-3 rounded-lg font-medium text-sm transition-all ${
+                        participante.lider
+                          ? 'bg-yellow-500/30 text-yellow-200 border border-yellow-500/50'
+                          : 'bg-yellow-500/10 text-yellow-300 hover:bg-yellow-500/20'
+                      }`}
+                    >
+                      👑 Líder
+                    </button>
+                    <button
+                      onClick={() => definirAnjo(participante.id)}
+                      className={`py-1.5 px-3 rounded-lg font-medium text-sm transition-all ${
+                        participante.anjo
+                          ? 'bg-blue-500/30 text-blue-200 border border-blue-500/50'
+                          : 'bg-blue-500/10 text-blue-300 hover:bg-blue-500/20'
+                      }`}
+                    >
+                      😇 Anjo
+                    </button>
+                  </div>
+                )}
+                <button
+                  onClick={() => toggleParticipanteAtivo(participante.id, participante.ativo)}
+                  className={`w-full py-2 rounded-lg font-medium transition-all ${
+                    participante.ativo
+                      ? 'bg-red-500/20 text-red-200 hover:bg-red-500/30'
+                      : 'bg-green-500/20 text-green-200 hover:bg-green-500/30'
+                  }`}
+                >
+                  {participante.ativo ? 'Eliminar' : 'Reativar'}
+                </button>
+              </div>
             </div>
           ))}
         </div>
