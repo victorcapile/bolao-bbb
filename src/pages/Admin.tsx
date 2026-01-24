@@ -12,6 +12,7 @@ export default function Admin() {
   const [novaProva, setNovaProva] = useState({ tipo: '', descricao: '', data_prova: '' });
   const [liderId, setLiderId] = useState('');
   const [anjoId, setAnjoId] = useState('');
+  const [novoParticipante, setNovoParticipante] = useState({ nome: '', foto_url: '' });
 
   useEffect(() => {
     loadData();
@@ -141,6 +142,33 @@ export default function Admin() {
     }
   };
 
+  const adicionarParticipante = async () => {
+    if (!novoParticipante.nome) {
+      alert('Preencha o nome do participante');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('participantes')
+        .insert({
+          nome: novoParticipante.nome,
+          foto_url: novoParticipante.foto_url || null,
+          ativo: true,
+          lider: false,
+          anjo: false,
+        });
+
+      if (error) throw error;
+      alert('Participante adicionado com sucesso! ✅');
+      setNovoParticipante({ nome: '', foto_url: '' });
+      loadData();
+    } catch (error) {
+      console.error('Erro ao adicionar participante:', error);
+      alert('Erro ao adicionar participante');
+    }
+  };
+
   if (!profile?.is_admin) {
     return <Navigate to="/" />;
   }
@@ -263,6 +291,39 @@ export default function Admin() {
             Definir Anjo
           </button>
         </div>
+      </div>
+
+      {/* Adicionar Participante */}
+      <div className="glass rounded-2xl p-6">
+        <h2 className="text-2xl font-bold text-white mb-6">➕ Adicionar Participante</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className="block text-white/80 text-sm mb-2">Nome *</label>
+            <input
+              type="text"
+              value={novoParticipante.nome}
+              onChange={(e) => setNovoParticipante({ ...novoParticipante, nome: e.target.value })}
+              placeholder="Nome do participante"
+              className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+          <div>
+            <label className="block text-white/80 text-sm mb-2">URL da Foto</label>
+            <input
+              type="text"
+              value={novoParticipante.foto_url}
+              onChange={(e) => setNovoParticipante({ ...novoParticipante, foto_url: e.target.value })}
+              placeholder="https://..."
+              className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+        </div>
+        <button
+          onClick={adicionarParticipante}
+          className="w-full py-3 rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold transition-all"
+        >
+          Adicionar Participante
+        </button>
       </div>
 
       {/* Participantes */}
