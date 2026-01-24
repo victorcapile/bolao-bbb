@@ -261,16 +261,25 @@ export default function Admin() {
       <div className="glass rounded-2xl p-6">
         <h2 className="text-2xl font-bold text-white mb-6">👥 Participantes</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {participantes.map((participante) => (
-            <div
-              key={participante.id}
-              className={`p-4 rounded-xl border-2 transition-all ${
-                participante.ativo
-                  ? 'bg-white/5 border-white/10'
-                  : 'bg-red-500/10 border-red-500/30 opacity-60'
-              }`}
-            >
-              <div className="flex items-center gap-3 mb-3">
+          {participantes.map((participante) => {
+            const isLider = participante.is_lider_atual;
+            const isAnjo = participante.is_anjo_atual;
+
+            let bgClass = 'bg-white/5 border-white/10';
+            if (!participante.ativo) {
+              bgClass = 'bg-red-500/10 border-red-500/30 opacity-60';
+            } else if (isLider) {
+              bgClass = 'bg-purple-500/20 border-purple-500/50 shadow-lg shadow-purple-500/20';
+            } else if (isAnjo) {
+              bgClass = 'bg-pink-500/20 border-pink-500/50 shadow-lg shadow-pink-500/20';
+            }
+
+            return (
+              <div
+                key={participante.id}
+                className={`p-4 rounded-xl border-2 transition-all ${bgClass}`}
+              >
+                <div className="flex items-center gap-3 mb-3">
                 {participante.foto_url && (
                   <img
                     src={participante.foto_url}
@@ -326,7 +335,8 @@ export default function Admin() {
                 </button>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
