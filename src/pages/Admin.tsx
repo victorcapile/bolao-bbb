@@ -9,6 +9,9 @@ export default function Admin() {
   const [participantes, setParticipantes] = useState<Participante[]>([]);
   const [provas, setProvas] = useState<Prova[]>([]);
   const [loading, setLoading] = useState(true);
+  const [novaProva, setNovaProva] = useState({ tipo: '', descricao: '', data_prova: '' });
+  const [liderId, setLiderId] = useState('');
+  const [anjoId, setAnjoId] = useState('');
 
   useEffect(() => {
     loadData();
@@ -52,9 +55,89 @@ export default function Admin() {
         .eq('id', provaId);
 
       if (error) throw error;
+      alert('Prova fechada com sucesso! ✅');
       loadData();
     } catch (error) {
       console.error('Erro ao fechar prova:', error);
+      alert('Erro ao fechar prova');
+    }
+  };
+
+  const criarProva = async () => {
+    if (!novaProva.tipo || !novaProva.data_prova) {
+      alert('Preencha tipo e data da prova');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('provas')
+        .insert({
+          tipo: novaProva.tipo,
+          descricao: novaProva.descricao,
+          data_prova: novaProva.data_prova,
+          fechada: false,
+        });
+
+      if (error) throw error;
+      alert('Prova criada com sucesso! ✅');
+      setNovaProva({ tipo: '', descricao: '', data_prova: '' });
+      loadData();
+    } catch (error) {
+      console.error('Erro ao criar prova:', error);
+      alert('Erro ao criar prova');
+    }
+  };
+
+  const definirLider = async () => {
+    if (!liderId) {
+      alert('Selecione um líder');
+      return;
+    }
+
+    try {
+      // Remover líder atual
+      await supabase.from('participantes').update({ lider: false }).neq('id', '00000000-0000-0000-0000-000000000000');
+
+      // Definir novo líder
+      const { error } = await supabase
+        .from('participantes')
+        .update({ lider: true })
+        .eq('id', liderId);
+
+      if (error) throw error;
+      alert('Líder definido com sucesso! 👑');
+      setLiderId('');
+      loadData();
+    } catch (error) {
+      console.error('Erro ao definir líder:', error);
+      alert('Erro ao definir líder');
+    }
+  };
+
+  const definirAnjo = async () => {
+    if (!anjoId) {
+      alert('Selecione um anjo');
+      return;
+    }
+
+    try {
+      // Remover anjo atual
+      await supabase.from('participantes').update({ anjo: false }).neq('id', '00000000-0000-0000-0000-000000000000');
+
+      // Definir novo anjo
+      const { error } = await supabase
+        .from('participantes')
+        .update({ anjo: true })
+        .eq('id', anjoId);
+
+      if (error) throw error;
+      alert('Anjo definido com sucesso! 😇');
+      setAnjoId('');
+      loadData();
+    } catch (error) {
+      console.error('Erro ao definir anjo:', error);
+      alert('Erro ao definir anjo');
     }
   };
 
@@ -82,9 +165,109 @@ export default function Admin() {
         <p className="text-white/70">Gerencie participantes e provas</p>
       </div>
 
+      {/* Criar Nova Prova */}
+      <div className="glass rounded-2xl p-6">
+        <h2 className="text-2xl font-bold text-white mb-6">➕ Criar Nova Prova</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div>
+            <label className="block text-white/80 text-sm mb-2">Tipo *</label>
+            <select
+              value={novaProva.tipo}
+              onChange={(e) => setNovaProva({ ...novaProva, tipo: e.target.value })}
+              className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="">Selecione...</option>
+              <option value="lider">Líder</option>
+              <option value="anjo">Anjo</option>
+              <option value="bate_volta">Bate e Volta</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-white/80 text-sm mb-2">Data *</label>
+            <input
+              type="date"
+              value={novaProva.data_prova}
+              onChange={(e) => setNovaProva({ ...novaProva, data_prova: e.target.value })}
+              className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+          <div>
+            <label className="block text-white/80 text-sm mb-2">Descrição</label>
+            <input
+              type="text"
+              value={novaProva.descricao}
+              onChange={(e) => setNovaProva({ ...novaProva, descricao: e.target.value })}
+              placeholder="Opcional..."
+              className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+        </div>
+        <button
+          onClick={criarProva}
+          className="w-full py-3 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold transition-all"
+        >
+          Criar Prova
+        </button>
+      </div>
+
+      {/* Líder e Anjo */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Definir Líder */}
+        <div className="glass rounded-2xl p-6">
+          <h2 className="text-2xl font-bold text-white mb-6">👑 Definir Líder</h2>
+          <select
+            value={liderId}
+            onChange={(e) => setLiderId(e.target.value)}
+            className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500 mb-4"
+          >
+            <option value="">Selecione o líder...</option>
+            {participantes
+              .filter((p) => p.ativo)
+              .map((participante) => (
+                <option key={participante.id} value={participante.id}>
+                  {participante.nome}
+                </option>
+              ))}
+          </select>
+          <button
+            onClick={definirLider}
+            disabled={!liderId}
+            className="w-full py-3 rounded-lg bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Definir Líder
+          </button>
+        </div>
+
+        {/* Definir Anjo */}
+        <div className="glass rounded-2xl p-6">
+          <h2 className="text-2xl font-bold text-white mb-6">😇 Definir Anjo</h2>
+          <select
+            value={anjoId}
+            onChange={(e) => setAnjoId(e.target.value)}
+            className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+          >
+            <option value="">Selecione o anjo...</option>
+            {participantes
+              .filter((p) => p.ativo)
+              .map((participante) => (
+                <option key={participante.id} value={participante.id}>
+                  {participante.nome}
+                </option>
+              ))}
+          </select>
+          <button
+            onClick={definirAnjo}
+            disabled={!anjoId}
+            className="w-full py-3 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Definir Anjo
+          </button>
+        </div>
+      </div>
+
       {/* Participantes */}
       <div className="glass rounded-2xl p-6">
-        <h2 className="text-2xl font-bold text-white mb-6">Participantes</h2>
+        <h2 className="text-2xl font-bold text-white mb-6">👥 Participantes</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {participantes.map((participante) => (
             <div
@@ -127,7 +310,7 @@ export default function Admin() {
 
       {/* Provas */}
       <div className="glass rounded-2xl p-6">
-        <h2 className="text-2xl font-bold text-white mb-6">Provas Abertas</h2>
+        <h2 className="text-2xl font-bold text-white mb-6">🏆 Provas Abertas</h2>
         <div className="space-y-4">
           {provas
             .filter((p) => !p.fechada)

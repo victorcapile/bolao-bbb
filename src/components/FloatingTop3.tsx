@@ -109,7 +109,7 @@ export default function FloatingTop3() {
       {/* Botão flutuante */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 w-20 h-20 rounded-full shadow-xl hover:scale-105 transition-all flex items-center justify-center text-4xl z-50 border-2 border-white/10"
+        className="fixed top-6 right-6 w-16 h-16 rounded-full shadow-xl hover:scale-105 transition-all flex items-center justify-center text-3xl z-50 border-2 border-white/10"
         style={{ background: 'rgba(88, 28, 135, 0.4)' }}
         title="Meu Top 3"
       >
