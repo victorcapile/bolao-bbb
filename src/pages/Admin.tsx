@@ -91,12 +91,12 @@ export default function Admin() {
   const definirLider = async (participanteId: string) => {
     try {
       // Remover líder atual
-      await supabase.from('participantes').update({ lider: false }).neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('participantes').update({ is_lider_atual: false }).neq('id', '00000000-0000-0000-0000-000000000000');
 
       // Definir novo líder
       const { error } = await supabase
         .from('participantes')
-        .update({ lider: true })
+        .update({ is_lider_atual: true })
         .eq('id', participanteId);
 
       if (error) throw error;
@@ -111,12 +111,12 @@ export default function Admin() {
   const definirAnjo = async (participanteId: string) => {
     try {
       // Remover anjo atual
-      await supabase.from('participantes').update({ anjo: false }).neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('participantes').update({ is_anjo_atual: false }).neq('id', '00000000-0000-0000-0000-000000000000');
 
       // Definir novo anjo
       const { error } = await supabase
         .from('participantes')
-        .update({ anjo: true })
+        .update({ is_anjo_atual: true })
         .eq('id', participanteId);
 
       if (error) throw error;
@@ -141,8 +141,8 @@ export default function Admin() {
           nome: novoParticipante.nome,
           foto_url: novoParticipante.foto_url || null,
           ativo: true,
-          lider: false,
-          anjo: false,
+          is_lider_atual: false,
+          is_anjo_atual: false,
         });
 
       if (error) throw error;
@@ -251,7 +251,7 @@ export default function Admin() {
         </div>
         <button
           onClick={adicionarParticipante}
-          className="w-full py-3 rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold transition-all"
+          className="w-full py-3 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold transition-all"
         >
           Adicionar Participante
         </button>
@@ -281,8 +281,8 @@ export default function Admin() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <h3 className="text-white font-semibold">{participante.nome}</h3>
-                    {participante.lider && <span className="text-lg">👑</span>}
-                    {participante.anjo && <span className="text-lg">😇</span>}
+                    {participante.is_lider_atual && <span className="text-lg">👑</span>}
+                    {participante.is_anjo_atual && <span className="text-lg">😇</span>}
                   </div>
                   <p className="text-white/60 text-sm">
                     {participante.ativo ? 'Ativo' : 'Eliminado'}
@@ -295,9 +295,9 @@ export default function Admin() {
                     <button
                       onClick={() => definirLider(participante.id)}
                       className={`py-1.5 px-3 rounded-lg font-medium text-sm transition-all ${
-                        participante.lider
-                          ? 'bg-yellow-500/30 text-yellow-200 border border-yellow-500/50'
-                          : 'bg-yellow-500/10 text-yellow-300 hover:bg-yellow-500/20'
+                        participante.is_lider_atual
+                          ? 'bg-purple-500/30 text-purple-200 border border-purple-500/50'
+                          : 'bg-purple-500/10 text-purple-300 hover:bg-purple-500/20'
                       }`}
                     >
                       👑 Líder
@@ -305,9 +305,9 @@ export default function Admin() {
                     <button
                       onClick={() => definirAnjo(participante.id)}
                       className={`py-1.5 px-3 rounded-lg font-medium text-sm transition-all ${
-                        participante.anjo
-                          ? 'bg-blue-500/30 text-blue-200 border border-blue-500/50'
-                          : 'bg-blue-500/10 text-blue-300 hover:bg-blue-500/20'
+                        participante.is_anjo_atual
+                          ? 'bg-pink-500/30 text-pink-200 border border-pink-500/50'
+                          : 'bg-pink-500/10 text-pink-300 hover:bg-pink-500/20'
                       }`}
                     >
                       😇 Anjo
