@@ -269,9 +269,9 @@ export default function Admin() {
             if (!participante.ativo) {
               bgClass = 'bg-red-500/10 border-red-500/30 opacity-60';
             } else if (isLider) {
-              bgClass = 'bg-purple-500/20 border-purple-500/50 shadow-lg shadow-purple-500/20';
+              bgClass = 'bg-gradient-to-br from-purple-500/40 to-purple-600/30 border-purple-400 shadow-2xl shadow-purple-500/50 ring-2 ring-purple-400/50';
             } else if (isAnjo) {
-              bgClass = 'bg-pink-500/20 border-pink-500/50 shadow-lg shadow-pink-500/20';
+              bgClass = 'bg-gradient-to-br from-pink-500/40 to-pink-600/30 border-pink-400 shadow-2xl shadow-pink-500/50 ring-2 ring-pink-400/50';
             }
 
             return (
