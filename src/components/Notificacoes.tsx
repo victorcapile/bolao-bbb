@@ -137,7 +137,7 @@ export default function Notificacoes() {
             onClick={handleClose}
           />
 
-          <div className={`absolute right-0 mt-3 w-[380px] max-w-[calc(100vw-2rem)] glass rounded-2xl shadow-2xl border border-white/20 z-50 overflow-hidden transition-all duration-200 ${
+          <div className={`fixed md:absolute top-16 md:top-auto right-4 md:right-0 left-4 md:left-auto md:mt-3 w-auto md:w-[380px] bg-gradient-to-b from-gray-800/95 to-gray-900/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/20 z-50 overflow-hidden transition-all duration-200 ${
             isClosing ? 'opacity-0 scale-95 translate-y-2' : 'opacity-100 scale-100 translate-y-0'
           }`}>
             {/* Header */}

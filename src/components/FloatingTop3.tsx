@@ -122,10 +122,10 @@ export default function FloatingTop3() {
 
   return (
     <>
-      {/* Botão flutuante */}
+      {/* Botão flutuante - No mobile fica na parte inferior */}
       <button
         onClick={() => !isOpen ? handleOpen() : handleClose()}
-        className="fixed top-4 right-4 w-12 h-12 md:top-6 md:right-6 md:w-16 md:h-16 rounded-full shadow-xl hover:scale-105 transition-all flex items-center justify-center text-2xl md:text-3xl z-50 border-2 border-white/10"
+        className="fixed bottom-20 right-4 w-12 h-12 md:top-6 md:bottom-auto md:right-6 md:w-16 md:h-16 rounded-full shadow-xl hover:scale-105 transition-all flex items-center justify-center text-2xl md:text-3xl z-50 border-2 border-white/10"
         style={{ background: 'rgba(88, 28, 135, 0.4)' }}
         title="Meu Top 3"
       >

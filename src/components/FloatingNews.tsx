@@ -22,10 +22,10 @@ export default function FloatingNews() {
 
     return (
         <>
-            {/* Botão flutuante - Posicionado abaixo do Top3 */}
+            {/* Botão flutuante - Escondido no mobile */}
             <button
                 onClick={() => !isOpen ? handleOpen() : handleClose()}
-                className="fixed top-[4.5rem] right-4 w-12 h-12 md:top-28 md:right-6 md:w-16 md:h-16 rounded-full glass-dark shadow-xl hover:scale-105 transition-all flex items-center justify-center text-2xl md:text-3xl z-40 border-2 border-sky-400/30 text-sky-400"
+                className="hidden md:flex fixed md:top-28 md:right-6 md:w-16 md:h-16 rounded-full glass-dark shadow-xl hover:scale-105 transition-all items-center justify-center text-3xl z-40 border-2 border-sky-400/30 text-sky-400"
                 title="Notícias Espiadinha"
             >
                 📰
