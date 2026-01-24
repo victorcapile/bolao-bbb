@@ -1,0 +1,137 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply min-h-screen font-sans antialiased;
+    background: var(--bg-gradient);
+  }
+
+  /* Paletas de cores para cada dia da semana */
+  /* Domingo - Roxo/Rosa (original) */
+  body[data-day="0"] {
+    --bg-gradient: linear-gradient(to bottom right, #0f172a, #581c87, #0f172a);
+  }
+  
+  /* Segunda - Azul/Ciano */
+  body[data-day="1"] {
+    --bg-gradient: linear-gradient(to bottom right, #0f172a, #164e63, #0f172a);
+  }
+  
+  /* Terça - Verde/Esmeralda */
+  body[data-day="2"] {
+    --bg-gradient: linear-gradient(to bottom right, #0f172a, #065f46, #0f172a);
+  }
+  
+  /* Quarta - Vermelho/Rosa */
+  body[data-day="3"] {
+    --bg-gradient: linear-gradient(to bottom right, #0f172a, #9f1239, #0f172a);
+  }
+  
+  /* Quinta - Laranja/Âmbar */
+  body[data-day="4"] {
+    --bg-gradient: linear-gradient(to bottom right, #0f172a, #92400e, #0f172a);
+  }
+  
+  /* Sexta - Índigo/Violeta */
+  body[data-day="5"] {
+    --bg-gradient: linear-gradient(to bottom right, #0f172a, #3730a3, #0f172a);
+  }
+  
+  /* Sábado - Pink/Fúcsia */
+  body[data-day="6"] {
+    --bg-gradient: linear-gradient(to bottom right, #0f172a, #86198f, #0f172a);
+  }
+
+  /* Fallback caso o JS não rode */
+  body:not([data-day]) {
+    --bg-gradient: linear-gradient(to bottom right, #0f172a, #581c87, #0f172a);
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/10 backdrop-blur-lg border border-white/20;
+  }
+
+  .glass-dark {
+    @apply bg-black/20 backdrop-blur-lg border border-white/10;
+  }
+}
+
+/* Animações */
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+@keyframes streak-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(251, 146, 60, 0.7);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(251, 146, 60, 0);
+  }
+}
+
+@keyframes level-up {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2) rotate(5deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.animate-streak {
+  animation: streak-pulse 1s ease-in-out 3;
+}
+
+.animate-level-up {
+  animation: level-up 0.5s ease-in-out;
+}
+
+/* Animações do Drawer */
+@keyframes slide-in-from-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-in {
+  animation-fill-mode: both;
+}
+
+.slide-in-from-right {
+  animation: slide-in-from-right 0.3s ease-out;
+}
+
+.fade-in {
+  animation: fade-in 0.2s ease-out;
+}
