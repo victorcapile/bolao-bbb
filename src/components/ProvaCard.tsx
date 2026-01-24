@@ -125,7 +125,7 @@ export default function ProvaCard({
               <p className="text-orange-200 text-sm">Aguardando definição dos emparedados</p>
             </div>
           ) : (
-            <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 gap-2 lg:gap-3 flex-1 auto-rows-max">
+            <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 gap-2 lg:gap-3 flex-1 auto-rows-max">
               {participantesDisponiveis.map((participante) => {
                 const jaVotou = apostasAtuais.some(ap => ap.participante_id === participante.id);
                 return (
@@ -144,13 +144,13 @@ export default function ProvaCard({
                       </div>
                     )}
                     {participante.is_lider_atual && (
-                      <div className="absolute -top-2 -left-2 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center shadow-xl border border-yellow-300/50 z-10">
-                        <span className="text-lg lg:text-xl">👑</span>
+                      <div className="absolute -top-1.5 -left-1.5 lg:-top-2 lg:-left-2 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full w-6 h-6 lg:w-10 lg:h-10 flex items-center justify-center shadow-xl border border-yellow-300/50 z-10">
+                        <span className="text-sm lg:text-xl">👑</span>
                       </div>
                     )}
                     {participante.is_anjo_atual && (
-                      <div className="absolute -top-2 -right-2 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center shadow-xl border border-blue-300/50 z-10">
-                        <span className="text-lg lg:text-xl">😇</span>
+                      <div className="absolute -top-1.5 -right-1.5 lg:-top-2 lg:-right-2 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full w-6 h-6 lg:w-10 lg:h-10 flex items-center justify-center shadow-xl border border-blue-300/50 z-10">
+                        <span className="text-sm lg:text-xl">😇</span>
                       </div>
                     )}
                     {participante.foto_url && (

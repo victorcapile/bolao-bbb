@@ -287,8 +287,8 @@ export default function Amigos() {
                                         : 'bg-white/5 border border-white/5 hover:bg-white/10'
                                       }`}
                                   >
-                                    <div className="flex items-center justify-between gap-2">
-                                      <div className="flex items-center gap-2 min-w-0">
+                                    <div className="flex items-start gap-2">
+                                      <div className="flex items-center gap-2 flex-1 min-w-0">
                                         {aposta.avatar_url ? (
                                           <img
                                             src={aposta.avatar_url}
@@ -300,63 +300,62 @@ export default function Amigos() {
                                             {aposta.username.charAt(0).toUpperCase()}
                                           </div>
                                         )}
-                                        <div className="min-w-0">
+                                        <div className="min-w-0 flex-1">
                                           <p className={`font-bold text-sm truncate ${isMyVote ? 'text-purple-200' : 'text-white'}`}>
                                             @{aposta.username}
                                           </p>
-                                          {/* Reações existentes */}
-                                          {reacoesAposta.length > 0 && (
-                                            <div className="flex gap-1 mt-0.5">
-                                              {reacoesAposta.map(r => (
-                                                <span key={r.tipo} className="text-[10px] bg-black/20 px-1 rounded flex items-center gap-0.5" title={`${r.count} reações`}>
-                                                  {getEmojiReacao(r.tipo)}
-                                                  <span className="text-white/70">{r.count}</span>
-                                                </span>
-                                              ))}
-                                            </div>
-                                          )}
                                         </div>
                                       </div>
-
-                                      {/* Botão de Reagir (+Menu) */}
-                                      {!isMyVote && (
-                                        <div className="relative">
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              setOpenReactionsId(isOpen ? null : aposta.id);
-                                            }}
-                                            className="w-6 h-6 rounded-full bg-white/5 hover:bg-white/20 flex items-center justify-center text-white/50 hover:text-white transition-all"
-                                          >
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                              {isOpen ? (
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                              ) : (
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                              )}
-                                            </svg>
-                                          </button>
-
-                                          {/* Menu de Reações (Popover) */}
-                                          {isOpen && (
-                                            <div
-                                              ref={menuRef}
-                                              className="absolute right-0 bottom-8 z-20 bg-[#1e1e2e] border border-white/10 rounded-lg shadow-xl p-1.5 flex gap-1 animate-in fade-in zoom-in duration-200"
-                                            >
-                                              {['like', 'fire', 'thinking', 'skull', 'clown'].map(tipo => (
-                                                <button
-                                                  key={tipo}
-                                                  onClick={() => toggleReacao(aposta.id, tipo as TipoReacao)}
-                                                  className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-md text-lg transition-transform hover:scale-110 active:scale-95"
-                                                >
-                                                  {getEmojiReacao(tipo as TipoReacao)}
-                                                </button>
-                                              ))}
-                                            </div>
-                                          )}
-                                        </div>
-                                      )}
                                     </div>
+
+                                    {/* Reações - Sempre visíveis */}
+                                    {!isMyVote && (
+                                      <div className="mt-2 flex gap-1 flex-wrap">
+                                        {['like', 'fire', 'thinking', 'skull', 'clown']
+                                          .sort((a, b) => {
+                                            const reacaoA = reacoesAposta.find(r => r.tipo === a);
+                                            const reacaoB = reacoesAposta.find(r => r.tipo === b);
+                                            const userReactedA = reacaoA?.userReacted || false;
+                                            const userReactedB = reacaoB?.userReacted || false;
+
+                                            // Reações do usuário primeiro
+                                            if (userReactedA && !userReactedB) return -1;
+                                            if (!userReactedA && userReactedB) return 1;
+
+                                            // Depois por contagem
+                                            const countA = reacaoA?.count || 0;
+                                            const countB = reacaoB?.count || 0;
+                                            if (countA > countB) return -1;
+                                            if (countA < countB) return 1;
+
+                                            return 0;
+                                          })
+                                          .map(tipo => {
+                                            const reacao = reacoesAposta.find(r => r.tipo === tipo);
+                                            const count = reacao?.count || 0;
+                                            const userReacted = reacao?.userReacted || false;
+
+                                            return (
+                                              <button
+                                                key={tipo}
+                                                onClick={() => toggleReacao(aposta.id, tipo as TipoReacao)}
+                                                className={`flex items-center gap-1 px-2 py-1 rounded-full text-sm transition-all ${
+                                                  userReacted
+                                                    ? 'bg-gradient-to-r from-purple-500/30 to-pink-500/30 border border-purple-500/50 scale-105'
+                                                    : 'bg-white/5 border border-white/10 hover:bg-white/10 hover:scale-105'
+                                                }`}
+                                              >
+                                                <span>{getEmojiReacao(tipo as TipoReacao)}</span>
+                                                {count > 0 && (
+                                                  <span className={`text-xs font-medium ${userReacted ? 'text-purple-200' : 'text-white/60'}`}>
+                                                    {count}
+                                                  </span>
+                                                )}
+                                              </button>
+                                            );
+                                          })}
+                                      </div>
+                                    )}
                                   </div>
                                 );
                               })}

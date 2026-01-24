@@ -46,7 +46,7 @@ export default function LiderAnjoWeek() {
   if (!lider && !anjo && imunizados.length === 0) return null;
 
   return (
-    <div className="fixed left-6 top-24 z-40 space-y-4">
+    <div className="hidden lg:flex fixed left-6 top-24 z-40 flex-col gap-4">
       {lider && (
         <div className="glass-dark p-4 rounded-2xl border-2 border-purple-400/50 shadow-2xl shadow-purple-500/20 w-40 backdrop-blur-xl transition-all duration-300 hover:scale-105 hover:shadow-purple-500/40 hover:border-purple-400/70 cursor-pointer">
           <div className="text-center">

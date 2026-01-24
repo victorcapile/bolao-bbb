@@ -7,6 +7,15 @@ CREATE TABLE IF NOT EXISTS comentarios_apostas (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Tabela de comentários no feed
+CREATE TABLE IF NOT EXISTS comentarios_feed (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  atividade_id UUID NOT NULL REFERENCES feed_atividades(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  comentario TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Tabela de notificações
 CREATE TABLE IF NOT EXISTS notificacoes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -22,22 +31,40 @@ CREATE TABLE IF NOT EXISTS notificacoes (
 CREATE INDEX IF NOT EXISTS idx_comentarios_apostas_aposta_id ON comentarios_apostas(aposta_id);
 CREATE INDEX IF NOT EXISTS idx_comentarios_apostas_user_id ON comentarios_apostas(user_id);
 CREATE INDEX IF NOT EXISTS idx_comentarios_apostas_created_at ON comentarios_apostas(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_comentarios_feed_atividade_id ON comentarios_feed(atividade_id);
+CREATE INDEX IF NOT EXISTS idx_comentarios_feed_user_id ON comentarios_feed(user_id);
+CREATE INDEX IF NOT EXISTS idx_comentarios_feed_created_at ON comentarios_feed(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_notificacoes_user_id ON notificacoes(user_id);
 CREATE INDEX IF NOT EXISTS idx_notificacoes_lida ON notificacoes(lida);
 
--- RLS para comentários
+-- RLS para comentários em apostas
 ALTER TABLE comentarios_apostas ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Usuários podem ver todos os comentários"
+CREATE POLICY "Usuários podem ver todos os comentários em apostas"
   ON comentarios_apostas FOR SELECT
   USING (true);
 
-CREATE POLICY "Usuários podem criar comentários"
+CREATE POLICY "Usuários podem criar comentários em apostas"
   ON comentarios_apostas FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Usuários podem deletar seus próprios comentários"
+CREATE POLICY "Usuários podem deletar seus próprios comentários em apostas"
   ON comentarios_apostas FOR DELETE
+  USING (auth.uid() = user_id);
+
+-- RLS para comentários no feed
+ALTER TABLE comentarios_feed ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Usuários podem ver todos os comentários no feed"
+  ON comentarios_feed FOR SELECT
+  USING (true);
+
+CREATE POLICY "Usuários podem criar comentários no feed"
+  ON comentarios_feed FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Usuários podem deletar seus próprios comentários no feed"
+  ON comentarios_feed FOR DELETE
   USING (auth.uid() = user_id);
 
 -- RLS para notificações
@@ -128,3 +155,42 @@ CREATE TRIGGER trigger_notificacao_reacao
   AFTER INSERT ON reacoes_votos
   FOR EACH ROW
   EXECUTE FUNCTION criar_notificacao_reacao();
+
+-- Função para criar notificação quando alguém comenta no feed
+CREATE OR REPLACE FUNCTION criar_notificacao_comentario_feed()
+RETURNS TRIGGER AS $$
+DECLARE
+  atividade_owner_id UUID;
+  comentador_username TEXT;
+BEGIN
+  -- Buscar o dono da atividade
+  SELECT user_id INTO atividade_owner_id
+  FROM feed_atividades
+  WHERE id = NEW.atividade_id;
+
+  -- Buscar username de quem comentou
+  SELECT username INTO comentador_username
+  FROM profiles
+  WHERE id = NEW.user_id;
+
+  -- Só criar notificação se não for o próprio dono comentando
+  IF atividade_owner_id != NEW.user_id THEN
+    INSERT INTO notificacoes (user_id, tipo, referencia_id, mensagem)
+    VALUES (
+      atividade_owner_id,
+      'comentario',
+      NEW.id,
+      comentador_username || ' comentou na sua atividade'
+    );
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger para notificação de comentário no feed
+DROP TRIGGER IF EXISTS trigger_notificacao_comentario_feed ON comentarios_feed;
+CREATE TRIGGER trigger_notificacao_comentario_feed
+  AFTER INSERT ON comentarios_feed
+  FOR EACH ROW
+  EXECUTE FUNCTION criar_notificacao_comentario_feed();

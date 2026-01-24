@@ -1,4 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
+
+interface Comentario {
+    id: string;
+    user_id: string;
+    comentario: string;
+    created_at: string;
+    username?: string;
+    avatar_url?: string;
+}
 
 interface FeedItemProps {
     atividade: any;
@@ -9,6 +20,61 @@ interface FeedItemProps {
 export default function FeedItem({ atividade, getIconByTipo, getTempoDecorrido }: FeedItemProps) {
     const [expanded, setExpanded] = useState(false);
     const [comment, setComment] = useState('');
+    const [comentarios, setComentarios] = useState<Comentario[]>([]);
+    const [loading, setLoading] = useState(false);
+    const { user } = useAuth();
+
+    useEffect(() => {
+        if (expanded) {
+            carregarComentarios();
+        }
+    }, [expanded]);
+
+    const carregarComentarios = async () => {
+        const { data, error } = await supabase
+            .from('comentarios_feed')
+            .select(`
+                *,
+                profiles:user_id (username, avatar_url)
+            `)
+            .eq('atividade_id', atividade.id)
+            .order('created_at', { ascending: true });
+
+        if (!error && data) {
+            const comentariosFormatados = data.map(c => ({
+                ...c,
+                username: c.profiles?.username,
+                avatar_url: c.profiles?.avatar_url
+            }));
+            setComentarios(comentariosFormatados);
+        }
+    };
+
+    const enviarComentario = async () => {
+        if (!comment.trim() || !user) return;
+
+        setLoading(true);
+        try {
+            const { error } = await supabase
+                .from('comentarios_feed')
+                .insert({
+                    atividade_id: atividade.id,
+                    user_id: user.id,
+                    comentario: comment.trim()
+                });
+
+            if (error) throw error;
+
+            setComment('');
+            carregarComentarios();
+        } catch (error: any) {
+            console.error('Erro ao enviar comentário:', error);
+            const errorMessage = error?.message || 'Erro desconhecido';
+            alert(`Erro ao enviar comentário: ${errorMessage}\n\nVerifique se você executou o SQL em ADICIONAR-COMENTARIOS-CORRIGIDO.sql`);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const getFallbackText = (tipo: string) => {
         const frases = {
@@ -72,28 +138,73 @@ export default function FeedItem({ atividade, getIconByTipo, getTempoDecorrido }
                         )}
                     </div>
 
+                    {/* Comentários Existentes */}
+                    {comentarios.length > 0 && (
+                        <div className="pl-11 mb-3 space-y-2">
+                            {comentarios.map((comentario) => (
+                                <div key={comentario.id} className="bg-black/20 rounded-lg p-2 border border-white/5">
+                                    <div className="flex items-start gap-2">
+                                        {comentario.avatar_url ? (
+                                            <img
+                                                src={comentario.avatar_url}
+                                                alt={comentario.username || ''}
+                                                className="w-5 h-5 rounded-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="w-5 h-5 rounded-full bg-purple-500/30 flex items-center justify-center text-[10px]">
+                                                {comentario.username?.[0]?.toUpperCase() || '?'}
+                                            </div>
+                                        )}
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 mb-0.5">
+                                                <span className="text-white/90 font-medium text-[11px]">
+                                                    @{comentario.username || 'Usuário'}
+                                                </span>
+                                                <span className="text-white/30 text-[9px]">
+                                                    {getTempoDecorrido(comentario.created_at)}
+                                                </span>
+                                            </div>
+                                            <p className="text-white/80 text-xs">{comentario.comentario}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
                     {/* Input de Comentário */}
                     <div className="pl-11 flex gap-2">
                         <input
                             type="text"
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
-                            placeholder="Comentar..."
-                            className="flex-1 bg-black/20 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-purple-500/50 transition-colors"
+                            onKeyPress={(e) => {
+                                if (e.key === 'Enter' && !loading) {
+                                    e.preventDefault();
+                                    enviarComentario();
+                                }
+                            }}
+                            placeholder="💬 Deixe um comentário..."
+                            className="flex-1 bg-black/20 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white placeholder-white/40 focus:outline-none focus:border-purple-500/50 transition-colors"
                             onClick={(e) => e.stopPropagation()}
+                            disabled={loading}
                         />
                         <button
-                            className="bg-white/10 hover:bg-white/20 text-white p-1.5 rounded-lg transition-colors"
+                            className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 border border-white/10 text-white p-1.5 rounded-lg transition-all disabled:opacity-50"
                             title="Enviar"
                             onClick={(e) => {
                                 e.stopPropagation();
-                                alert('Comentário enviado! (Funcionalidade visual)');
-                                setComment('');
+                                enviarComentario();
                             }}
+                            disabled={loading || !comment.trim()}
                         >
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                            </svg>
+                            {loading ? (
+                                <div className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" />
+                            ) : (
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                                </svg>
+                            )}
                         </button>
                     </div>
                 </div>
