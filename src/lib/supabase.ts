@@ -35,6 +35,7 @@ export interface Prova {
   titulo_customizado: string | null;
   max_escolhas: number;
   tipo_customizado: boolean;
+  votacao_aberta: boolean;
 }
 
 export interface Aposta {

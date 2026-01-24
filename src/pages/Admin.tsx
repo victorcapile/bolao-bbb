@@ -263,6 +263,31 @@ export default function Admin() {
     }
   };
 
+  const toggleVotacao = async (provaId: string, votacaoAtual: boolean) => {
+    const acao = votacaoAtual ? 'fechar' : 'abrir';
+    const mensagem = votacaoAtual
+      ? 'Tem certeza que deseja FECHAR a votação? Usuários não poderão mais fazer apostas nesta prova.'
+      : 'Tem certeza que deseja ABRIR a votação? Usuários poderão fazer novas apostas.';
+
+    if (!confirm(mensagem)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('provas')
+        .update({ votacao_aberta: !votacaoAtual })
+        .eq('id', provaId);
+
+      if (error) throw error;
+      alert(`Votação ${acao === 'fechar' ? 'fechada' : 'aberta'} com sucesso! ${votacaoAtual ? '🔒' : '🔓'}`);
+      loadData();
+    } catch (error) {
+      console.error('Erro ao alterar votação:', error);
+      alert('Erro ao alterar votação');
+    }
+  };
+
   if (!profile?.is_admin) {
     return <Navigate to="/" />;
   }
@@ -509,9 +534,16 @@ export default function Admin() {
                 <div key={prova.id} className="bg-white/5 border border-white/10 rounded-xl p-4">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
-                      <h3 className="text-white font-semibold text-lg">
-                        {prova.tipo_customizado ? prova.titulo_customizado : prova.tipo.toUpperCase()}
-                      </h3>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-white font-semibold text-lg">
+                          {prova.tipo_customizado ? prova.titulo_customizado : prova.tipo.toUpperCase()}
+                        </h3>
+                        {!prova.votacao_aberta && (
+                          <span className="px-2 py-0.5 rounded-full bg-red-500/20 text-red-300 text-xs font-medium">
+                            🔒 Votação Fechada
+                          </span>
+                        )}
+                      </div>
                       {prova.tipo_customizado && (
                         <p className="text-pink-300 text-xs">Prova Customizada • Escolher {prova.max_escolhas} {prova.max_escolhas === 1 ? 'pessoa' : 'pessoas'}</p>
                       )}
@@ -548,19 +580,32 @@ export default function Admin() {
                       </select>
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="space-y-2">
                       <button
-                        onClick={() => arquivarProva(prova.id)}
-                        className="flex-1 py-2 px-3 rounded-lg bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-300 text-sm font-medium transition-all border border-yellow-500/20"
+                        onClick={() => toggleVotacao(prova.id, prova.votacao_aberta)}
+                        className={`w-full py-2 px-3 rounded-lg text-sm font-medium transition-all border ${
+                          prova.votacao_aberta
+                            ? 'bg-red-500/10 hover:bg-red-500/20 text-red-300 border-red-500/20'
+                            : 'bg-green-500/10 hover:bg-green-500/20 text-green-300 border-green-500/20'
+                        }`}
                       >
-                        📦 Arquivar
+                        {prova.votacao_aberta ? '🔒 Fechar Votação' : '🔓 Abrir Votação'}
                       </button>
-                      <button
-                        onClick={() => deletarProva(prova.id)}
-                        className="flex-1 py-2 px-3 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-300 text-sm font-medium transition-all border border-red-500/20"
-                      >
-                        🗑️ Deletar
-                      </button>
+
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => arquivarProva(prova.id)}
+                          className="flex-1 py-2 px-3 rounded-lg bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-300 text-sm font-medium transition-all border border-yellow-500/20"
+                        >
+                          📦 Arquivar
+                        </button>
+                        <button
+                          onClick={() => deletarProva(prova.id)}
+                          className="flex-1 py-2 px-3 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-300 text-sm font-medium transition-all border border-red-500/20"
+                        >
+                          🗑️ Deletar
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

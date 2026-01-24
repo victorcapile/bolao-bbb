@@ -23,6 +23,7 @@ interface ProvaCardProps {
   tipo_customizado?: boolean;
   titulo_customizado?: string | null;
   max_escolhas?: number;
+  votacao_aberta?: boolean;
 }
 
 export default function ProvaCard({
@@ -41,7 +42,8 @@ export default function ProvaCard({
   formatDate,
   tipo_customizado = false,
   titulo_customizado = null,
-  max_escolhas = 1
+  max_escolhas = 1,
+  votacao_aberta = true
 }: ProvaCardProps) {
   const isPalpiteParedao = tipo === 'palpite_paredao';
   const isCustomMultiple = tipo_customizado && max_escolhas > 1;
@@ -66,6 +68,15 @@ export default function ProvaCard({
       </div>
 
       {/* Status */}
+      {!votacao_aberta && !fechada && (
+        <div className="bg-red-500/10 rounded-xl p-3 border border-red-500/30 mb-4">
+          <div className="flex items-center gap-2 text-red-300 text-sm font-medium">
+            <span className="text-lg">🔒</span>
+            <span>Votação Encerrada - Não é mais possível votar</span>
+          </div>
+        </div>
+      )}
+
       {fechada ? (
         <div className="bg-white/5 rounded-xl p-4 border border-white/10 mb-4">
           <span className="inline-block px-3 py-1 rounded-full bg-red-500/20 text-red-300 text-xs font-medium mb-3">

@@ -138,9 +138,15 @@ export default function Apostas() {
   const fazerAposta = async (provaId: string, participanteId: string) => {
     if (!user) return;
 
+    // Verificar se a votação está aberta
+    const prova = provas.find((p) => p.id === provaId);
+    if (prova && !prova.votacao_aberta) {
+      alert('⚠️ A votação para esta prova foi encerrada! Não é mais possível fazer apostas.');
+      return;
+    }
+
     setApostando(provaId);
     try {
-      const prova = provas.find((p) => p.id === provaId);
       const isPalpiteParedao = prova?.tipo === 'palpite_paredao';
       const apostasAtuais = prova?.apostas || [];
 

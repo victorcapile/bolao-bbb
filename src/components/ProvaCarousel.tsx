@@ -147,6 +147,7 @@ export default function ProvaCarousel({
               tipo_customizado={currentProva.tipo_customizado}
               titulo_customizado={currentProva.titulo_customizado}
               max_escolhas={currentProva.max_escolhas}
+              votacao_aberta={currentProva.votacao_aberta}
             />
           </div>
         </div>
