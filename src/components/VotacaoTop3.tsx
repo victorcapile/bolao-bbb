@@ -86,7 +86,7 @@ export default function VotacaoTop3({ provaId, onVote, votosAtuais = [] }: Votac
                 <img
                   src={participante.foto_url}
                   alt={participante.nome}
-                  className="w-16 h-16 rounded-full mx-auto mb-2 object-cover"
+                  className="w-16 h-16 rounded-full mx-auto mb-2 object-cover object-top"
                 />
               )}
 

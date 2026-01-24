@@ -5,6 +5,8 @@ import { useAuth } from '../contexts/AuthContext';
 
 export default function FloatingTop3() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+  const [isEntering, setIsEntering] = useState(false);
   const [participantes, setParticipantes] = useState<Participante[]>([]);
   const [primeiro, setPrimeiro] = useState('');
   const [segundo, setSegundo] = useState('');
@@ -63,6 +65,14 @@ export default function FloatingTop3() {
     }
   };
 
+  const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setIsOpen(false);
+      setIsClosing(false);
+    }, 300);
+  };
+
   const salvarTop3 = async () => {
     if (!primeiro || !segundo || !terceiro) {
       alert('Selecione os 3 lugares');
@@ -89,7 +99,7 @@ export default function FloatingTop3() {
       if (error) throw error;
 
       alert('Top 3 atualizado com sucesso! 🎉');
-      setIsOpen(false);
+      handleClose();
     } catch (error) {
       console.error('Erro ao salvar top3:', error);
       alert('Erro ao salvar. Tente novamente.');
@@ -102,13 +112,19 @@ export default function FloatingTop3() {
     return participantes.find(p => p.id === id)?.nome || '';
   };
 
+  const handleOpen = () => {
+    setIsOpen(true);
+    setIsEntering(true);
+    setTimeout(() => setIsEntering(false), 50);
+  };
+
   if (!user) return null;
 
   return (
     <>
       {/* Botão flutuante */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => !isOpen ? handleOpen() : handleClose()}
         className="fixed top-6 right-6 w-16 h-16 rounded-full shadow-xl hover:scale-105 transition-all flex items-center justify-center text-3xl z-50 border-2 border-white/10"
         style={{ background: 'rgba(88, 28, 135, 0.4)' }}
         title="Meu Top 3"
@@ -121,12 +137,16 @@ export default function FloatingTop3() {
         <>
           {/* Overlay */}
           <div
-            className="fixed inset-0 bg-black/50 z-50 transition-opacity animate-in fade-in duration-200"
-            onClick={() => setIsOpen(false)}
+            className={`fixed inset-0 bg-black/50 z-50 transition-opacity duration-300 ${
+              isClosing ? 'opacity-0' : isEntering ? 'opacity-0' : 'opacity-100'
+            }`}
+            onClick={handleClose}
           />
 
           {/* Drawer */}
-          <div className="fixed top-0 right-0 h-full w-full max-w-sm glass-dark z-50 shadow-2xl overflow-y-auto animate-in slide-in-from-right duration-300">
+          <div className={`fixed top-0 right-0 h-full w-full max-w-sm glass-dark z-50 shadow-2xl overflow-y-auto transition-transform duration-300 ease-out ${
+            isClosing ? 'translate-x-full' : isEntering ? 'translate-x-full' : 'translate-x-0'
+          }`}>
             <div className="p-6">
               {/* Header */}
               <div className="flex items-center justify-between mb-6">
@@ -134,7 +154,7 @@ export default function FloatingTop3() {
                   🏆 Meu Top 3
                 </h2>
                 <button
-                  onClick={() => setIsOpen(false)}
+                  onClick={handleClose}
                   className="text-white/80 hover:text-white text-2xl leading-none"
                 >
                   ✕

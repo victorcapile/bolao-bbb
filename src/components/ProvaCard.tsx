@@ -159,7 +159,7 @@ export default function ProvaCard({
                         <img
                           src={participante.foto_url}
                           alt={participante.nome}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover object-top"
                         />
                       </div>
                     )}

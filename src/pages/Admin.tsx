@@ -9,7 +9,7 @@ export default function Admin() {
   const [participantes, setParticipantes] = useState<Participante[]>([]);
   const [provas, setProvas] = useState<Prova[]>([]);
   const [loading, setLoading] = useState(true);
-  const [novaProva, setNovaProva] = useState({ tipo: '', descricao: '', data_prova: '' });
+  const [novaProva, setNovaProva] = useState({ tipo: '', data_prova: '' });
   const [novoParticipante, setNovoParticipante] = useState({ nome: '', foto_url: '' });
 
   useEffect(() => {
@@ -73,14 +73,13 @@ export default function Admin() {
         .from('provas')
         .insert({
           tipo: novaProva.tipo,
-          descricao: novaProva.descricao,
           data_prova: novaProva.data_prova,
           fechada: false,
         });
 
       if (error) throw error;
       alert('Prova criada com sucesso! ✅');
-      setNovaProva({ tipo: '', descricao: '', data_prova: '' });
+      setNovaProva({ tipo: '', data_prova: '' });
       loadData();
     } catch (error) {
       console.error('Erro ao criar prova:', error);
@@ -179,82 +178,63 @@ export default function Admin() {
         <p className="text-white/70">Gerencie participantes e provas</p>
       </div>
 
-      {/* Criar Nova Prova */}
-      <div className="glass rounded-2xl p-6">
-        <h2 className="text-2xl font-bold text-white mb-6">➕ Criar Nova Prova</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <div>
-            <label className="block text-white/80 text-sm mb-2">Tipo *</label>
+      {/* Formulários Compactos */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Criar Nova Prova */}
+        <div className="glass rounded-xl p-4">
+          <h2 className="text-lg font-bold text-white mb-3">➕ Criar Prova</h2>
+          <div className="space-y-2">
             <select
               value={novaProva.tipo}
               onChange={(e) => setNovaProva({ ...novaProva, tipo: e.target.value })}
-              className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full px-3 py-2 text-sm rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
-              <option value="">Selecione...</option>
+              <option value="">Tipo *</option>
               <option value="lider">Líder</option>
               <option value="anjo">Anjo</option>
               <option value="bate_volta">Bate e Volta</option>
             </select>
-          </div>
-          <div>
-            <label className="block text-white/80 text-sm mb-2">Data *</label>
             <input
               type="date"
               value={novaProva.data_prova}
               onChange={(e) => setNovaProva({ ...novaProva, data_prova: e.target.value })}
-              className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full px-3 py-2 text-sm rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
-          </div>
-          <div>
-            <label className="block text-white/80 text-sm mb-2">Descrição</label>
-            <input
-              type="text"
-              value={novaProva.descricao}
-              onChange={(e) => setNovaProva({ ...novaProva, descricao: e.target.value })}
-              placeholder="Opcional..."
-              className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
+            <button
+              onClick={criarProva}
+              className="w-full py-2 text-sm rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold transition-all"
+            >
+              Criar Prova
+            </button>
           </div>
         </div>
-        <button
-          onClick={criarProva}
-          className="w-full py-3 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold transition-all"
-        >
-          Criar Prova
-        </button>
-      </div>
 
-      {/* Adicionar Participante */}
-      <div className="glass rounded-2xl p-6">
-        <h2 className="text-2xl font-bold text-white mb-6">➕ Adicionar Participante</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div>
-            <label className="block text-white/80 text-sm mb-2">Nome *</label>
+        {/* Adicionar Participante */}
+        <div className="glass rounded-xl p-4">
+          <h2 className="text-lg font-bold text-white mb-3">➕ Adicionar Participante</h2>
+          <div className="space-y-2">
             <input
               type="text"
               value={novoParticipante.nome}
               onChange={(e) => setNovoParticipante({ ...novoParticipante, nome: e.target.value })}
-              placeholder="Nome do participante"
-              className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              placeholder="Nome do participante *"
+              className="w-full px-3 py-2 text-sm rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
-          </div>
-          <div>
-            <label className="block text-white/80 text-sm mb-2">URL da Foto</label>
             <input
               type="text"
               value={novoParticipante.foto_url}
               onChange={(e) => setNovoParticipante({ ...novoParticipante, foto_url: e.target.value })}
-              placeholder="https://..."
-              className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              placeholder="URL da Foto (opcional)"
+              className="w-full px-3 py-2 text-sm rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
+            <button
+              onClick={adicionarParticipante}
+              className="w-full py-2 text-sm rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold transition-all"
+            >
+              Adicionar Participante
+            </button>
           </div>
         </div>
-        <button
-          onClick={adicionarParticipante}
-          className="w-full py-3 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold transition-all"
-        >
-          Adicionar Participante
-        </button>
       </div>
 
       {/* Participantes */}
@@ -284,7 +264,7 @@ export default function Admin() {
                   <img
                     src={participante.foto_url}
                     alt={participante.nome}
-                    className="w-12 h-12 rounded-full object-cover"
+                    className="w-12 h-12 rounded-full object-cover object-top"
                   />
                 )}
                 <div className="flex-1">

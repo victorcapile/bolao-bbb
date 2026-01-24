@@ -335,7 +335,7 @@ export default function Stats() {
                 <div key={p.id} className="flex items-center gap-3">
                   <div className="w-5 text-white/30 text-xs">{idx + 1}.</div>
                   {p.foto_url ? (
-                    <img src={p.foto_url} alt={p.nome} className="w-6 h-6 rounded-full object-cover" />
+                    <img src={p.foto_url} alt={p.nome} className="w-6 h-6 rounded-full object-cover object-top" />
                   ) : (
                     <div className="w-6 h-6 rounded-full bg-white/10" />
                   )}
