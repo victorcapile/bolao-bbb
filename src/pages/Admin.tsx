@@ -199,6 +199,70 @@ export default function Admin() {
     }
   };
 
+  const reabrirProva = async (provaId: string) => {
+    if (!confirm('Tem certeza que deseja reabrir esta prova? Isso permitirá novas apostas.')) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('provas')
+        .update({ fechada: false, vencedor_id: null })
+        .eq('id', provaId);
+
+      if (error) throw error;
+      alert('Prova reaberta com sucesso! 🔓');
+      loadData();
+    } catch (error) {
+      console.error('Erro ao reabrir prova:', error);
+      alert('Erro ao reabrir prova');
+    }
+  };
+
+  const arquivarProva = async (provaId: string) => {
+    if (!confirm('Tem certeza que deseja arquivar esta prova? Ela não aparecerá mais na lista de apostas.')) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('provas')
+        .update({ arquivada: true })
+        .eq('id', provaId);
+
+      if (error) throw error;
+      alert('Prova arquivada com sucesso! 📦');
+      loadData();
+    } catch (error) {
+      console.error('Erro ao arquivar prova:', error);
+      alert('Erro ao arquivar prova');
+    }
+  };
+
+  const deletarProva = async (provaId: string) => {
+    if (!confirm('⚠️ ATENÇÃO: Tem certeza que deseja DELETAR esta prova? Esta ação é IRREVERSÍVEL e apagará todas as apostas relacionadas!')) {
+      return;
+    }
+
+    try {
+      // Primeiro deletar as apostas relacionadas
+      await supabase.from('apostas').delete().eq('prova_id', provaId);
+
+      // Depois deletar a prova
+      const { error } = await supabase
+        .from('provas')
+        .delete()
+        .eq('id', provaId);
+
+      if (error) throw error;
+      alert('Prova deletada com sucesso! 🗑️');
+      loadData();
+    } catch (error) {
+      console.error('Erro ao deletar prova:', error);
+      alert('Erro ao deletar prova');
+    }
+  };
+
   if (!profile?.is_admin) {
     return <Navigate to="/" />;
   }
@@ -432,56 +496,145 @@ export default function Admin() {
         </div>
       </div>
 
-      {/* Provas */}
+      {/* Provas Abertas */}
       <div className="glass rounded-2xl p-6">
         <h2 className="text-2xl font-bold text-white mb-6">🏆 Provas Abertas</h2>
-        <div className="space-y-4">
-          {provas
-            .filter((p) => !p.fechada)
-            .map((prova) => (
-              <div key={prova.id} className="bg-white/5 border border-white/10 rounded-xl p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="text-white font-semibold text-lg">
-                      {prova.tipo_customizado ? prova.titulo_customizado : prova.tipo.toUpperCase()}
-                    </h3>
-                    {prova.tipo_customizado && (
-                      <p className="text-pink-300 text-xs">Prova Customizada • Escolher {prova.max_escolhas} {prova.max_escolhas === 1 ? 'pessoa' : 'pessoas'}</p>
-                    )}
-                    {prova.descricao && (
-                      <p className="text-white/60 text-sm">{prova.descricao}</p>
-                    )}
-                    <p className="text-white/40 text-xs mt-1">
-                      {new Date(prova.data_prova).toLocaleDateString('pt-BR')}
-                    </p>
+        {provas.filter((p) => !p.fechada).length === 0 ? (
+          <p className="text-white/60 text-center py-8">Nenhuma prova aberta no momento</p>
+        ) : (
+          <div className="space-y-4">
+            {provas
+              .filter((p) => !p.fechada)
+              .map((prova) => (
+                <div key={prova.id} className="bg-white/5 border border-white/10 rounded-xl p-4">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <h3 className="text-white font-semibold text-lg">
+                        {prova.tipo_customizado ? prova.titulo_customizado : prova.tipo.toUpperCase()}
+                      </h3>
+                      {prova.tipo_customizado && (
+                        <p className="text-pink-300 text-xs">Prova Customizada • Escolher {prova.max_escolhas} {prova.max_escolhas === 1 ? 'pessoa' : 'pessoas'}</p>
+                      )}
+                      {prova.descricao && (
+                        <p className="text-white/60 text-sm">{prova.descricao}</p>
+                      )}
+                      <p className="text-white/40 text-xs mt-1">
+                        {new Date(prova.data_prova).toLocaleDateString('pt-BR')}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-white/80 text-sm mb-2">
+                        Selecione o vencedor para fechar a prova:
+                      </label>
+                      <select
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            fecharProva(prova.id, e.target.value);
+                          }
+                        }}
+                        className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      >
+                        <option value="">Selecione o vencedor...</option>
+                        {participantes
+                          .filter((p) => p.ativo)
+                          .map((participante) => (
+                            <option key={participante.id} value={participante.id}>
+                              {participante.nome}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => arquivarProva(prova.id)}
+                        className="flex-1 py-2 px-3 rounded-lg bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-300 text-sm font-medium transition-all border border-yellow-500/20"
+                      >
+                        📦 Arquivar
+                      </button>
+                      <button
+                        onClick={() => deletarProva(prova.id)}
+                        className="flex-1 py-2 px-3 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-300 text-sm font-medium transition-all border border-red-500/20"
+                      >
+                        🗑️ Deletar
+                      </button>
+                    </div>
                   </div>
                 </div>
+              ))}
+          </div>
+        )}
+      </div>
 
-                <div>
-                  <label className="block text-white/80 text-sm mb-2">
-                    Selecione o vencedor para fechar a prova:
-                  </label>
-                  <select
-                    onChange={(e) => {
-                      if (e.target.value) {
-                        fecharProva(prova.id, e.target.value);
-                      }
-                    }}
-                    className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  >
-                    <option value="">Selecione o vencedor...</option>
-                    {participantes
-                      .filter((p) => p.ativo)
-                      .map((participante) => (
-                        <option key={participante.id} value={participante.id}>
-                          {participante.nome}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-              </div>
-            ))}
-        </div>
+      {/* Provas Fechadas */}
+      <div className="glass rounded-2xl p-6">
+        <h2 className="text-2xl font-bold text-white mb-6">✅ Provas Fechadas</h2>
+        {provas.filter((p) => p.fechada).length === 0 ? (
+          <p className="text-white/60 text-center py-8">Nenhuma prova fechada</p>
+        ) : (
+          <div className="space-y-4">
+            {provas
+              .filter((p) => p.fechada)
+              .map((prova) => {
+                const vencedor = participantes.find((p) => p.id === prova.vencedor_id);
+                return (
+                  <div key={prova.id} className="bg-white/5 border border-green-500/30 rounded-xl p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-white font-semibold text-lg">
+                            {prova.tipo_customizado ? prova.titulo_customizado : prova.tipo.toUpperCase()}
+                          </h3>
+                          <span className="px-2 py-0.5 rounded-full bg-green-500/20 text-green-300 text-xs font-medium">
+                            Encerrada
+                          </span>
+                        </div>
+                        {prova.tipo_customizado && (
+                          <p className="text-pink-300 text-xs">Prova Customizada • {prova.max_escolhas} {prova.max_escolhas === 1 ? 'pessoa' : 'pessoas'}</p>
+                        )}
+                        {prova.descricao && (
+                          <p className="text-white/60 text-sm">{prova.descricao}</p>
+                        )}
+                        <p className="text-white/40 text-xs mt-1">
+                          {new Date(prova.data_prova).toLocaleDateString('pt-BR')}
+                        </p>
+                        {vencedor && (
+                          <div className="mt-2 flex items-center gap-2">
+                            <span className="text-yellow-400 text-lg">🏆</span>
+                            <span className="text-white font-medium">{vencedor.nome}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => reabrirProva(prova.id)}
+                        className="flex-1 py-2 px-3 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 text-sm font-medium transition-all border border-blue-500/20"
+                      >
+                        🔓 Reabrir
+                      </button>
+                      <button
+                        onClick={() => arquivarProva(prova.id)}
+                        className="flex-1 py-2 px-3 rounded-lg bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-300 text-sm font-medium transition-all border border-yellow-500/20"
+                      >
+                        📦 Arquivar
+                      </button>
+                      <button
+                        onClick={() => deletarProva(prova.id)}
+                        className="flex-1 py-2 px-3 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-300 text-sm font-medium transition-all border border-red-500/20"
+                      >
+                        🗑️ Deletar
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        )}
       </div>
     </div>
   );
