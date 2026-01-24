@@ -15,7 +15,6 @@ interface ProvaComDetalhes extends Prova {
 export default function Apostas() {
   const [provas, setProvas] = useState<ProvaComDetalhes[]>([]);
   const [participantes, setParticipantes] = useState<Participante[]>([]);
-  const [emparedadosPorProva, setEmparedadosPorProva] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(true);
   const [apostando, setApostando] = useState<string | null>(null);
   const { user } = useAuth();
@@ -47,18 +46,9 @@ export default function Apostas() {
       if (error) throw error;
 
       // Carregar emparedados para cada prova
-      const { data: emparedadosData } = await supabase
+      await supabase
         .from('emparedados')
         .select('prova_id, participante_id');
-
-      const emparedadosMap: Record<string, string[]> = {};
-      emparedadosData?.forEach((e) => {
-        if (!emparedadosMap[e.prova_id]) {
-          emparedadosMap[e.prova_id] = [];
-        }
-        emparedadosMap[e.prova_id].push(e.participante_id);
-      });
-      setEmparedadosPorProva(emparedadosMap);
 
       if (user) {
         const { data: apostasData, error: apostasError } = await supabase
@@ -97,7 +87,7 @@ export default function Apostas() {
             } : undefined,
             apostas: apostasLimpas.length > 0 ? apostasLimpas : undefined,
             participante_apostado: aposta?.participantes || undefined,
-            emparedados: emparedadosMap[prova.id] || [],
+            emparedados: [],
           };
         });
 
@@ -113,7 +103,7 @@ export default function Apostas() {
       } else {
         const provasOrdenadas = provasData.map(prova => ({
           ...prova,
-          emparedados: emparedadosMap[prova.id] || [],
+          emparedados: [],
         }));
 
         // Ordenar: abertas primeiro, depois por tipo

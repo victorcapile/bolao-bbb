@@ -1,22 +1,13 @@
 import { useState } from 'react';
 import ProvaCard from './ProvaCard';
-import type { Participante } from '../lib/supabase';
+import type { Participante, Prova, Aposta } from '../lib/supabase';
 
-interface ProvaComDetalhes {
-  id: string;
-  tipo: string;
-  data_prova: string;
-  descricao: string | null;
-  fechada: boolean;
-  aposta?: {
-    participante_id: string;
-    pontos: number;
-  };
-  apostas?: Array<{
-    participante_id: string;
-    pontos: number;
-  }>;
+interface ProvaComDetalhes extends Prova {
+  vencedor?: Participante;
+  aposta?: Aposta;
+  apostas?: Aposta[];
   participante_apostado?: Participante;
+  emparedados?: string[];
 }
 
 interface ProvaCarouselProps {

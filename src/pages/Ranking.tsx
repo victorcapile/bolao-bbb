@@ -33,7 +33,7 @@ export default function Ranking() {
   const [votosTop3, setVotosTop3] = useState<VotoComUsuario[]>([]);
   const [streaks, setStreaks] = useState<Record<string, Streak>>({});
   const [loading, setLoading] = useState(true);
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
 
   useEffect(() => {
     loadRanking();
