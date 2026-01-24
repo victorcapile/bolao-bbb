@@ -22,7 +22,6 @@ export default function Amigos() {
   const [provasAtivas, setProvasAtivas] = useState<Prova[]>([]);
   const [loading, setLoading] = useState(true);
   const [reacoes, setReacoes] = useState<ReacaoVoto[]>([]);
-  const [openReactionsId, setOpenReactionsId] = useState<string | null>(null);
   const { user } = useAuth();
   const menuRef = useRef<HTMLDivElement>(null);
 
