@@ -32,6 +32,9 @@ export interface Prova {
   vencedor_id: string | null;
   arquivada: boolean;
   created_at: string;
+  titulo_customizado: string | null;
+  max_escolhas: number;
+  tipo_customizado: boolean;
 }
 
 export interface Aposta {

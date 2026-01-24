@@ -20,6 +20,9 @@ interface ProvaCardProps {
   getTipoProvaLabel: (tipo: string) => string;
   getTipoProvaColor: (tipo: string) => string;
   formatDate: (date: string) => string;
+  tipo_customizado?: boolean;
+  titulo_customizado?: string | null;
+  max_escolhas?: number;
 }
 
 export default function ProvaCard({
@@ -35,19 +38,28 @@ export default function ProvaCard({
   apostando,
   getTipoProvaLabel,
   getTipoProvaColor,
-  formatDate
+  formatDate,
+  tipo_customizado = false,
+  titulo_customizado = null,
+  max_escolhas = 1
 }: ProvaCardProps) {
   const isPalpiteParedao = tipo === 'palpite_paredao';
-  const apostasAtuais = isPalpiteParedao ? (apostas || []) : (aposta ? [aposta] : []);
-  const votosRestantes = isPalpiteParedao ? Math.max(0, 3 - apostasAtuais.length) : (aposta ? 0 : 1);
+  const isCustomMultiple = tipo_customizado && max_escolhas > 1;
+  const apostasAtuais = (isPalpiteParedao || isCustomMultiple) ? (apostas || []) : (aposta ? [aposta] : []);
+  const votosRestantes = (isPalpiteParedao || isCustomMultiple)
+    ? Math.max(0, (isPalpiteParedao ? 3 : max_escolhas) - apostasAtuais.length)
+    : (aposta ? 0 : 1);
   return (
     <div className="glass rounded-2xl p-4 lg:p-5 shadow-2xl flex flex-col w-full min-h-[500px] sm:min-h-[600px] justify-between transition-all duration-300">
       {/* Header */}
       <div className="text-center mb-4">
         <h2 className={`text-xl lg:text-2xl font-bold bg-gradient-to-r ${getTipoProvaColor(tipo)} bg-clip-text text-transparent mb-1`}>
-          {getTipoProvaLabel(tipo)}
+          {tipo_customizado ? titulo_customizado : getTipoProvaLabel(tipo)}
         </h2>
-        {descricao && (
+        {tipo_customizado && max_escolhas > 1 && (
+          <p className="text-pink-300 text-xs mb-1">Escolha {max_escolhas} {max_escolhas === 1 ? 'pessoa' : 'pessoas'}</p>
+        )}
+        {descricao && !tipo_customizado && (
           <p className="text-white/80 text-xs lg:text-sm mb-1">{descricao}</p>
         )}
         <span className="text-white/60 text-[10px] lg:text-xs font-medium">{formatDate(dataProva)}</span>

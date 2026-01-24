@@ -144,6 +144,9 @@ export default function ProvaCarousel({
               getTipoProvaLabel={getTipoProvaLabel}
               getTipoProvaColor={getTipoProvaColor}
               formatDate={formatDate}
+              tipo_customizado={currentProva.tipo_customizado}
+              titulo_customizado={currentProva.titulo_customizado}
+              max_escolhas={currentProva.max_escolhas}
             />
           </div>
         </div>

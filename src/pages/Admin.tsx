@@ -9,7 +9,13 @@ export default function Admin() {
   const [participantes, setParticipantes] = useState<Participante[]>([]);
   const [provas, setProvas] = useState<Prova[]>([]);
   const [loading, setLoading] = useState(true);
-  const [novaProva, setNovaProva] = useState({ tipo: '', data_prova: '' });
+  const [novaProva, setNovaProva] = useState({
+    tipo: '',
+    data_prova: '',
+    tipo_customizado: false,
+    titulo_customizado: '',
+    max_escolhas: 1
+  });
   const [novoParticipante, setNovoParticipante] = useState({ nome: '', foto_url: '' });
 
   useEffect(() => {
@@ -63,23 +69,44 @@ export default function Admin() {
   };
 
   const criarProva = async () => {
-    if (!novaProva.tipo || !novaProva.data_prova) {
-      alert('Preencha tipo e data da prova');
+    if (!novaProva.data_prova) {
+      alert('Preencha a data da prova');
       return;
+    }
+
+    if (novaProva.tipo_customizado) {
+      if (!novaProva.titulo_customizado) {
+        alert('Preencha o título da prova customizada');
+        return;
+      }
+    } else {
+      if (!novaProva.tipo) {
+        alert('Selecione o tipo da prova');
+        return;
+      }
     }
 
     try {
       const { error } = await supabase
         .from('provas')
         .insert({
-          tipo: novaProva.tipo,
+          tipo: novaProva.tipo_customizado ? 'lider' : novaProva.tipo,
           data_prova: novaProva.data_prova,
           fechada: false,
+          tipo_customizado: novaProva.tipo_customizado,
+          titulo_customizado: novaProva.tipo_customizado ? novaProva.titulo_customizado : null,
+          max_escolhas: novaProva.max_escolhas,
         });
 
       if (error) throw error;
       alert('Prova criada com sucesso! ✅');
-      setNovaProva({ tipo: '', data_prova: '' });
+      setNovaProva({
+        tipo: '',
+        data_prova: '',
+        tipo_customizado: false,
+        titulo_customizado: '',
+        max_escolhas: 1
+      });
       loadData();
     } catch (error) {
       console.error('Erro ao criar prova:', error);
@@ -199,22 +226,74 @@ export default function Admin() {
         <div className="glass rounded-xl p-4">
           <h2 className="text-lg font-bold text-white mb-3">➕ Criar Prova</h2>
           <div className="space-y-2">
-            <select
-              value={novaProva.tipo}
-              onChange={(e) => setNovaProva({ ...novaProva, tipo: e.target.value })}
-              className="w-full px-3 py-2 text-sm rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-            >
-              <option value="">Tipo *</option>
-              <option value="lider">Líder</option>
-              <option value="anjo">Anjo</option>
-              <option value="bate_volta">Bate e Volta</option>
-            </select>
+            {/* Toggle: Prova Padrão ou Customizada */}
+            <div className="flex items-center gap-2 mb-2">
+              <button
+                onClick={() => setNovaProva({ ...novaProva, tipo_customizado: false, titulo_customizado: '', max_escolhas: 1 })}
+                className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all ${
+                  !novaProva.tipo_customizado
+                    ? 'bg-purple-500/30 text-purple-200 border border-purple-500/50'
+                    : 'bg-white/5 text-white/60 hover:bg-white/10'
+                }`}
+              >
+                Prova Padrão
+              </button>
+              <button
+                onClick={() => setNovaProva({ ...novaProva, tipo_customizado: true, tipo: '' })}
+                className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all ${
+                  novaProva.tipo_customizado
+                    ? 'bg-pink-500/30 text-pink-200 border border-pink-500/50'
+                    : 'bg-white/5 text-white/60 hover:bg-white/10'
+                }`}
+              >
+                Prova Customizada
+              </button>
+            </div>
+
+            {/* Campos para Prova Padrão */}
+            {!novaProva.tipo_customizado && (
+              <select
+                value={novaProva.tipo}
+                onChange={(e) => setNovaProva({ ...novaProva, tipo: e.target.value })}
+                className="w-full px-3 py-2 text-sm rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              >
+                <option value="">Tipo *</option>
+                <option value="lider">Líder</option>
+                <option value="anjo">Anjo</option>
+                <option value="bate_volta">Bate e Volta</option>
+              </select>
+            )}
+
+            {/* Campos para Prova Customizada */}
+            {novaProva.tipo_customizado && (
+              <>
+                <input
+                  type="text"
+                  value={novaProva.titulo_customizado}
+                  onChange={(e) => setNovaProva({ ...novaProva, titulo_customizado: e.target.value })}
+                  placeholder="Ex: Quem vai brigar na próxima festa?"
+                  className="w-full px-3 py-2 text-sm rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                />
+                <select
+                  value={novaProva.max_escolhas}
+                  onChange={(e) => setNovaProva({ ...novaProva, max_escolhas: parseInt(e.target.value) })}
+                  className="w-full px-3 py-2 text-sm rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
+                >
+                  <option value="1">1 pessoa</option>
+                  <option value="2">2 pessoas</option>
+                  <option value="3">3 pessoas</option>
+                </select>
+              </>
+            )}
+
+            {/* Data da Prova */}
             <input
               type="date"
               value={novaProva.data_prova}
               onChange={(e) => setNovaProva({ ...novaProva, data_prova: e.target.value })}
               className="w-full px-3 py-2 text-sm rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
+
             <button
               onClick={criarProva}
               className="w-full py-2 text-sm rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold transition-all"
@@ -352,9 +431,12 @@ export default function Admin() {
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h3 className="text-white font-semibold text-lg">
-                      {prova.tipo.toUpperCase()}
+                      {prova.tipo_customizado ? prova.titulo_customizado : prova.tipo.toUpperCase()}
                     </h3>
-                    {prova.descricao && (
+                    {prova.tipo_customizado && (
+                      <p className="text-pink-300 text-xs">Prova Customizada • Escolher {prova.max_escolhas} {prova.max_escolhas === 1 ? 'pessoa' : 'pessoas'}</p>
+                    )}
+                    {prova.descricao && !prova.tipo_customizado && (
                       <p className="text-white/60 text-sm">{prova.descricao}</p>
                     )}
                     <p className="text-white/40 text-xs mt-1">
