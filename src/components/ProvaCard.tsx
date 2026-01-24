@@ -41,7 +41,7 @@ export default function ProvaCard({
   const apostasAtuais = isPalpiteParedao ? (apostas || []) : (aposta ? [aposta] : []);
   const votosRestantes = isPalpiteParedao ? Math.max(0, 3 - apostasAtuais.length) : (aposta ? 0 : 1);
   return (
-    <div className="glass rounded-2xl p-4 lg:p-5 shadow-2xl flex flex-col">
+    <div className="glass rounded-2xl p-4 lg:p-5 shadow-2xl flex flex-col w-full min-h-[500px] sm:min-h-[600px] justify-between transition-all duration-300">
       {/* Header */}
       <div className="text-center mb-4">
         <h2 className={`text-xl lg:text-2xl font-bold bg-gradient-to-r ${getTipoProvaColor(tipo)} bg-clip-text text-transparent mb-1`}>

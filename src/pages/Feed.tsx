@@ -4,12 +4,16 @@ import type { FeedAtividade } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import StreakNotification from '../components/StreakNotification';
 
+import FeedItem from '../components/FeedItem';
+
 export default function Feed() {
   const [atividades, setAtividades] = useState<FeedAtividade[]>([]);
   const [loading, setLoading] = useState(true);
   const [showStreakNotification, setShowStreakNotification] = useState(false);
   const [currentStreak, setCurrentStreak] = useState(0);
   const { user } = useAuth();
+
+  // ... (useEffect and loading logic remains the same)
 
   useEffect(() => {
     loadFeed();
@@ -61,15 +65,12 @@ export default function Feed() {
       const atividadesComDetalhes = atividadesData.map(item => {
         const profile = profilesData?.find(p => p.id === item.user_id);
 
-        // Inferir XP/Pontos se não estiver no metadata
         let xp = item.metadata?.xp;
         let pontos = item.metadata?.pontos;
 
-        // Lógica de fallback se metadata estiver vazio (opcional, baseado nas regras do sistema)
         if (!xp) {
           if (item.tipo === 'acerto') xp = 50;
           else if (item.tipo === 'voto') xp = 10;
-          else if (item.tipo === 'nivel_up') xp = 0; // Nível up não dá XP, é consequência
         }
 
         return {
@@ -78,7 +79,8 @@ export default function Feed() {
           avatar_url: profile?.avatar_url || null,
           nivel: profile?.nivel || 1,
           displayXp: xp,
-          displayPontos: pontos
+          displayPontos: pontos,
+          // Garante que o metadata esteja disponível na raiz apenas se necessário, mas o original já está em item.metadata
         };
       });
 
@@ -194,46 +196,12 @@ export default function Feed() {
         ) : (
           <div className="space-y-2">
             {atividades.map((atividade: any) => (
-              <div
+              <FeedItem
                 key={atividade.id}
-                className="glass rounded-xl p-3 hover:bg-white/10 transition-all flex items-center gap-4 border-l-2 border-l-transparent hover:border-l-purple-400"
-              >
-                {getIconByTipo(atividade.tipo)}
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-white font-bold text-sm">@{atividade.username}</span>
-                    {atividade.nivel && (
-                      <div className="px-1.5 py-[1px] rounded-full bg-white/10 border border-white/10 text-white/90 text-[9px] font-bold flex items-center gap-0.5">
-                        <span>★</span>
-                        {atividade.nivel}
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-white/80 text-xs sm:text-sm leading-snug truncate">{atividade.descricao}</p>
-                </div>
-
-                {/* Coluna da direita: Tempo + Recompensas */}
-                <div className="flex flex-col items-end gap-1 shrink-0">
-                  <span className="text-white/30 text-[10px] whitespace-nowrap">{getTempoDecorrido(atividade.created_at)}</span>
-
-                  {/* Badges de Recompensa */}
-                  {(atividade.displayPontos > 0 || atividade.displayXp > 0) && (
-                    <div className="flex items-center gap-1">
-                      {atividade.displayPontos > 0 && (
-                        <span className="text-[9px] font-bold text-green-300 bg-green-500/10 px-1.5 py-0.5 rounded border border-green-500/20">
-                          +{atividade.displayPontos}pts
-                        </span>
-                      )}
-                      {atividade.displayXp > 0 && (
-                        <span className="text-[9px] font-bold text-purple-300 bg-purple-500/10 px-1.5 py-0.5 rounded border border-purple-500/20">
-                          +{atividade.displayXp}XP
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
+                atividade={atividade}
+                getIconByTipo={getIconByTipo}
+                getTempoDecorrido={getTempoDecorrido}
+              />
             ))}
           </div>
         )}

@@ -30,12 +30,20 @@ export default function ProvaCarousel({
   formatDate
 }: ProvaCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [direction, setDirection] = useState<'next' | 'prev' | 'fade'>('fade');
+
+  const goToExactIndex = (index: number) => {
+    setDirection(index > currentIndex ? 'next' : 'prev');
+    setCurrentIndex(index);
+  };
 
   const handlePrevious = () => {
+    setDirection('prev');
     setCurrentIndex((prev) => (prev > 0 ? prev - 1 : provas.length - 1));
   };
 
   const handleNext = () => {
+    setDirection('next');
     setCurrentIndex((prev) => (prev < provas.length - 1 ? prev + 1 : 0));
   };
 
@@ -97,7 +105,7 @@ export default function ProvaCarousel({
           return (
             <button
               key={index}
-              onClick={() => setCurrentIndex(index)}
+              onClick={() => goToExactIndex(index)}
               className={`transition-all rounded-full ${index === currentIndex
                 ? `w-4 h-1.5 ${dotColor}`
                 : `w-1.5 h-1.5 ${dotColor} opacity-50 hover:opacity-100`
@@ -114,35 +122,45 @@ export default function ProvaCarousel({
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        <ProvaCard
-          tipo={currentProva.tipo}
-          descricao={currentProva.descricao}
-          dataProva={currentProva.data_prova}
-          fechada={currentProva.fechada}
-          aposta={currentProva.aposta}
-          apostas={currentProva.apostas}
-          participanteApostado={currentProva.participante_apostado}
-          participantesDisponiveis={getParticipantesParaProva(currentProva)}
-          onVotar={(participanteId) => fazerAposta(currentProva.id, participanteId)}
-          apostando={apostando === currentProva.id}
-          getTipoProvaLabel={getTipoProvaLabel}
-          getTipoProvaColor={getTipoProvaColor}
-          formatDate={formatDate}
-        />
+        <div className="overflow-hidden rounded-2xl p-1">
+          <div
+            key={currentIndex}
+            className={`${direction === 'next' ? 'slide-in-from-right' :
+              direction === 'prev' ? 'slide-in-from-left' :
+                'fade-in'
+              }`}
+          >
+            <ProvaCard
+              tipo={currentProva.tipo}
+              descricao={currentProva.descricao}
+              dataProva={currentProva.data_prova}
+              fechada={currentProva.fechada}
+              aposta={currentProva.aposta}
+              apostas={currentProva.apostas}
+              participanteApostado={currentProva.participante_apostado}
+              participantesDisponiveis={getParticipantesParaProva(currentProva)}
+              onVotar={(participanteId) => fazerAposta(currentProva.id, participanteId)}
+              apostando={apostando === currentProva.id}
+              getTipoProvaLabel={getTipoProvaLabel}
+              getTipoProvaColor={getTipoProvaColor}
+              formatDate={formatDate}
+            />
+          </div>
+        </div>
 
         {/* Botões de navegação */}
         {provas.length > 1 && (
           <>
             <button
               onClick={handlePrevious}
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white transition-all hover:scale-110 shadow-lg"
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white transition-all hover:scale-110 shadow-lg z-10"
               aria-label="Prova anterior"
             >
               ←
             </button>
             <button
               onClick={handleNext}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white transition-all hover:scale-110 shadow-lg"
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white transition-all hover:scale-110 shadow-lg z-10"
               aria-label="Próxima prova"
             >
               →

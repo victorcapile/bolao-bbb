@@ -1,13 +1,30 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import NivelBadge from './NivelBadge';
+import Notificacoes from './Notificacoes';
 
 export default function Navbar() {
   const { user, profile, signOut } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const location = useLocation();
+
+  const isActive = (path: string) => location.pathname === path;
+
+  const getLinkClasses = (path: string, mobile = false) => {
+    if (mobile) {
+      return `block font-medium py-2.5 px-3 rounded-lg transition-all ${isActive(path)
+        ? 'bg-purple-500/20 text-purple-200 border border-purple-500/30'
+        : 'text-white/80 hover:text-white hover:bg-white/10'
+        }`;
+    }
+    return `relative px-4 py-2 rounded-full transition-all font-medium text-sm group ${isActive(path)
+      ? 'text-purple-200 bg-purple-500/20 border border-purple-500/30 shadow-[0_0_10px_rgba(168,85,247,0.2)]'
+      : 'text-white/70 hover:text-white hover:bg-white/5 border border-transparent'
+      }`;
+  };
 
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
@@ -56,47 +73,29 @@ export default function Navbar() {
     <nav className="glass fixed top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-6xl rounded-2xl shadow-2xl z-50">
       <div className="px-6 py-4">
         <div className="flex items-center justify-between">
-          <Link to="/" className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+          <Link to="/" className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent transform hover:scale-105 transition-transform">
             Bolão BBB
           </Link>
 
           {user && (
             <div className="hidden md:flex items-center gap-1">
-              <Link
-                to="/"
-                className="px-4 py-2 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-all font-medium text-sm"
-              >
+              <Link to="/" className={getLinkClasses('/')}>
                 Apostas
               </Link>
-              <Link
-                to="/amigos"
-                className="px-4 py-2 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-all font-medium text-sm"
-              >
+              <Link to="/amigos" className={getLinkClasses('/amigos')}>
                 Amigos
               </Link>
-              <Link
-                to="/feed"
-                className="px-4 py-2 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-all font-medium text-sm"
-              >
+              <Link to="/feed" className={getLinkClasses('/feed')}>
                 Feed
               </Link>
-              <Link
-                to="/stats"
-                className="px-4 py-2 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-all font-medium text-sm"
-              >
+              <Link to="/stats" className={getLinkClasses('/stats')}>
                 Stats
               </Link>
-              <Link
-                to="/ranking"
-                className="px-4 py-2 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-all font-medium text-sm"
-              >
+              <Link to="/ranking" className={getLinkClasses('/ranking')}>
                 Ranking
               </Link>
               {profile?.is_admin && (
-                <Link
-                  to="/admin"
-                  className="px-4 py-2 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-all font-medium text-sm"
-                >
+                <Link to="/admin" className={getLinkClasses('/admin')}>
                   Admin
                 </Link>
               )}
@@ -106,6 +105,9 @@ export default function Navbar() {
           <div className="flex items-center gap-4">
             {user ? (
               <>
+                {/* Notificações */}
+                <Notificacoes />
+
                 {/* Avatar com upload */}
                 <div className="relative group">
                   <label htmlFor="avatar-upload" className="cursor-pointer">
@@ -113,10 +115,10 @@ export default function Navbar() {
                       <img
                         src={profile.avatar_url}
                         alt="Avatar"
-                        className="w-10 h-10 rounded-full object-cover border-2 border-white/30 group-hover:border-purple-400 transition-all"
+                        className="w-10 h-10 rounded-full object-cover border-2 border-white/30 group-hover:border-purple-400 transition-all shadow-md"
                       />
                     ) : (
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold border-2 border-white/30 group-hover:border-purple-400 transition-all">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold border-2 border-white/30 group-hover:border-purple-400 transition-all shadow-md">
                         {profile?.username?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
                       </div>
                     )}
@@ -174,7 +176,7 @@ export default function Navbar() {
 
                 <button
                   onClick={signOut}
-                  className="hidden md:block px-4 py-2 rounded-full bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition-all font-medium text-sm"
+                  className="hidden md:block px-4 py-2 rounded-full bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition-all font-medium text-sm border border-white/5 hover:border-white/10"
                 >
                   Sair
                 </button>
@@ -182,7 +184,7 @@ export default function Navbar() {
             ) : (
               <Link
                 to="/login"
-                className="px-6 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold transition-all shadow-lg"
+                className="px-6 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold transition-all shadow-lg transform hover:scale-105"
               >
                 Entrar
               </Link>
@@ -192,39 +194,39 @@ export default function Navbar() {
 
         {/* Menu Mobile */}
         {user && menuOpen && (
-          <div className="md:hidden mt-4 pt-4 border-t border-white/10 space-y-1">
+          <div className="md:hidden mt-4 pt-4 border-t border-white/10 space-y-1 animate-in slide-in-from-right">
             <Link
               to="/"
               onClick={() => setMenuOpen(false)}
-              className="block text-white/80 hover:text-white hover:bg-white/10 transition-all font-medium py-2.5 px-3 rounded-lg"
+              className={getLinkClasses('/', true)}
             >
               Apostas
             </Link>
             <Link
               to="/amigos"
               onClick={() => setMenuOpen(false)}
-              className="block text-white/80 hover:text-white hover:bg-white/10 transition-all font-medium py-2.5 px-3 rounded-lg"
+              className={getLinkClasses('/amigos', true)}
             >
               Amigos
             </Link>
             <Link
               to="/feed"
               onClick={() => setMenuOpen(false)}
-              className="block text-white/80 hover:text-white hover:bg-white/10 transition-all font-medium py-2.5 px-3 rounded-lg"
+              className={getLinkClasses('/feed', true)}
             >
               Feed
             </Link>
             <Link
               to="/stats"
               onClick={() => setMenuOpen(false)}
-              className="block text-white/80 hover:text-white hover:bg-white/10 transition-all font-medium py-2.5 px-3 rounded-lg"
+              className={getLinkClasses('/stats', true)}
             >
               Stats
             </Link>
             <Link
               to="/ranking"
               onClick={() => setMenuOpen(false)}
-              className="block text-white/80 hover:text-white hover:bg-white/10 transition-all font-medium py-2.5 px-3 rounded-lg"
+              className={getLinkClasses('/ranking', true)}
             >
               Ranking
             </Link>
@@ -232,21 +234,27 @@ export default function Navbar() {
               <Link
                 to="/admin"
                 onClick={() => setMenuOpen(false)}
-                className="block text-white/80 hover:text-white hover:bg-white/10 transition-all font-medium py-2.5 px-3 rounded-lg"
+                className={getLinkClasses('/admin', true)}
               >
                 Admin
               </Link>
             )}
             <div className="pt-3 border-t border-white/10">
-              <div className="text-white/60 text-sm mb-2">
-                {profile?.username || user.email}
+              <div className="flex items-center gap-3 mb-3 px-2">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold border border-white/20">
+                  {profile?.username?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-white font-medium text-sm">{profile?.username || user.email}</span>
+                  {profile && <span className="text-white/50 text-xs">Nível {profile.nivel}</span>}
+                </div>
               </div>
               <button
                 onClick={() => {
                   setMenuOpen(false);
                   signOut();
                 }}
-                className="w-full text-left px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors font-medium border border-white/20"
+                className="w-full text-left px-4 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-200 hover:text-red-100 transition-colors font-medium border border-red-500/10"
               >
                 Sair
               </button>

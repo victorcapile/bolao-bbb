@@ -3,6 +3,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import Navbar from './components/Navbar';
 import FloatingTop3 from './components/FloatingTop3';
 import LiderAnjoWeek from './components/LiderAnjoWeek';
+import FloatingNews from './components/FloatingNews';
 import PrivateRoute from './components/PrivateRoute';
 import Login from './pages/Login';
 import Registrar from './pages/Registrar';
@@ -42,6 +43,7 @@ function App() {
           <Navbar />
           <FloatingTop3 />
           <LiderAnjoWeek />
+          <FloatingNews />
           <main className="container mx-auto px-4 py-6 max-w-7xl mt-20">
             <Routes>
               <Route path="/login" element={<Login />} />

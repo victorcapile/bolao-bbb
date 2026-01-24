@@ -19,6 +19,7 @@ export interface Participante {
   ativo: boolean;
   is_lider_atual?: boolean;
   is_anjo_atual?: boolean;
+  is_imune_atual?: boolean;
   created_at: string;
 }
 
@@ -92,5 +93,25 @@ export interface ReacaoVoto {
   aposta_id: string;
   user_id: string;
   tipo: TipoReacao;
+  created_at: string;
+}
+
+export interface ComentarioAposta {
+  id: string;
+  aposta_id: string;
+  user_id: string;
+  comentario: string;
+  created_at: string;
+  username?: string;
+  avatar_url?: string;
+}
+
+export interface Notificacao {
+  id: string;
+  user_id: string;
+  tipo: 'comentario' | 'reacao';
+  referencia_id: string;
+  lida: boolean;
+  mensagem: string;
   created_at: string;
 }

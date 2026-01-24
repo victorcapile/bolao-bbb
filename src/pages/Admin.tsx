@@ -127,6 +127,21 @@ export default function Admin() {
     }
   };
 
+  const toggleImunidade = async (participanteId: string, statusAtual: boolean = false) => {
+    try {
+      const { error } = await supabase
+        .from('participantes')
+        .update({ is_imune_atual: !statusAtual })
+        .eq('id', participanteId);
+
+      if (error) throw error;
+      loadData();
+    } catch (error) {
+      console.error('Erro ao alternar imunidade:', error);
+      alert('Erro ao alternar imunidade');
+    }
+  };
+
   const adicionarParticipante = async () => {
     if (!novoParticipante.nome) {
       alert('Preencha o nome do participante');
@@ -260,61 +275,67 @@ export default function Admin() {
                 className={`p-4 rounded-xl border-2 transition-all ${bgClass}`}
               >
                 <div className="flex items-center gap-3 mb-3">
-                {participante.foto_url && (
-                  <img
-                    src={participante.foto_url}
-                    alt={participante.nome}
-                    className="w-12 h-12 rounded-full object-cover object-top"
-                  />
-                )}
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-white font-semibold">{participante.nome}</h3>
-                    {participante.is_lider_atual && <span className="text-lg">👑</span>}
-                    {participante.is_anjo_atual && <span className="text-lg">😇</span>}
+                  {participante.foto_url && (
+                    <img
+                      src={participante.foto_url}
+                      alt={participante.nome}
+                      className="w-12 h-12 rounded-full object-cover object-top"
+                    />
+                  )}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-white font-semibold">{participante.nome}</h3>
+                      {participante.is_lider_atual && <span className="text-lg">👑</span>}
+                      {participante.is_anjo_atual && <span className="text-lg">😇</span>}
+                    </div>
+                    <p className="text-white/60 text-sm">
+                      {participante.ativo ? 'Ativo' : 'Eliminado'}
+                    </p>
                   </div>
-                  <p className="text-white/60 text-sm">
-                    {participante.ativo ? 'Ativo' : 'Eliminado'}
-                  </p>
                 </div>
-              </div>
-              <div className="space-y-2">
-                {participante.ativo && (
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => definirLider(participante.id)}
-                      className={`py-1.5 px-3 rounded-lg font-medium text-sm transition-all ${
-                        participante.is_lider_atual
+                <div className="space-y-2">
+                  {participante.ativo && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => definirLider(participante.id)}
+                        className={`py-1.5 px-3 rounded-lg font-medium text-sm transition-all ${participante.is_lider_atual
                           ? 'bg-purple-500/30 text-purple-200 border border-purple-500/50'
                           : 'bg-purple-500/10 text-purple-300 hover:bg-purple-500/20'
-                      }`}
-                    >
-                      👑 Líder
-                    </button>
-                    <button
-                      onClick={() => definirAnjo(participante.id)}
-                      className={`py-1.5 px-3 rounded-lg font-medium text-sm transition-all ${
-                        participante.is_anjo_atual
+                          }`}
+                      >
+                        👑 Líder
+                      </button>
+                      <button
+                        onClick={() => definirAnjo(participante.id)}
+                        className={`py-1.5 px-3 rounded-lg font-medium text-sm transition-all ${participante.is_anjo_atual
                           ? 'bg-pink-500/30 text-pink-200 border border-pink-500/50'
                           : 'bg-pink-500/10 text-pink-300 hover:bg-pink-500/20'
-                      }`}
-                    >
-                      😇 Anjo
-                    </button>
-                  </div>
-                )}
-                <button
-                  onClick={() => toggleParticipanteAtivo(participante.id, participante.ativo)}
-                  className={`w-full py-2 rounded-lg font-medium transition-all ${
-                    participante.ativo
+                          }`}
+                      >
+                        😇 Anjo
+                      </button>
+                      <button
+                        onClick={() => toggleImunidade(participante.id, participante.is_imune_atual)}
+                        className={`py-1.5 px-3 rounded-lg font-medium text-sm transition-all col-span-2 ${participante.is_imune_atual
+                          ? 'bg-yellow-500/30 text-yellow-200 border border-yellow-500/50'
+                          : 'bg-yellow-500/10 text-yellow-300 hover:bg-yellow-500/20'
+                          }`}
+                      >
+                        🛡️ Imunizar
+                      </button>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => toggleParticipanteAtivo(participante.id, participante.ativo)}
+                    className={`w-full py-2 rounded-lg font-medium transition-all ${participante.ativo
                       ? 'bg-red-500/20 text-red-200 hover:bg-red-500/30'
                       : 'bg-green-500/20 text-green-200 hover:bg-green-500/30'
-                  }`}
-                >
-                  {participante.ativo ? 'Eliminar' : 'Reativar'}
-                </button>
+                      }`}
+                  >
+                    {participante.ativo ? 'Eliminar' : 'Reativar'}
+                  </button>
+                </div>
               </div>
-            </div>
             );
           })}
         </div>
