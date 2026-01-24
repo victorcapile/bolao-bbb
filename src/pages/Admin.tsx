@@ -12,6 +12,7 @@ export default function Admin() {
   const [novaProva, setNovaProva] = useState({
     tipo: '',
     data_prova: '',
+    descricao: '',
     tipo_customizado: false,
     titulo_customizado: '',
     max_escolhas: 1
@@ -92,6 +93,7 @@ export default function Admin() {
         .insert({
           tipo: novaProva.tipo_customizado ? 'lider' : novaProva.tipo,
           data_prova: novaProva.data_prova,
+          descricao: novaProva.descricao || null,
           fechada: false,
           tipo_customizado: novaProva.tipo_customizado,
           titulo_customizado: novaProva.tipo_customizado ? novaProva.titulo_customizado : null,
@@ -103,6 +105,7 @@ export default function Admin() {
       setNovaProva({
         tipo: '',
         data_prova: '',
+        descricao: '',
         tipo_customizado: false,
         titulo_customizado: '',
         max_escolhas: 1
@@ -286,6 +289,15 @@ export default function Admin() {
               </>
             )}
 
+            {/* Descrição (opcional) */}
+            <input
+              type="text"
+              value={novaProva.descricao}
+              onChange={(e) => setNovaProva({ ...novaProva, descricao: e.target.value })}
+              placeholder="Descrição (opcional)"
+              className="w-full px-3 py-2 text-sm rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+
             {/* Data da Prova */}
             <input
               type="date"
@@ -436,7 +448,7 @@ export default function Admin() {
                     {prova.tipo_customizado && (
                       <p className="text-pink-300 text-xs">Prova Customizada • Escolher {prova.max_escolhas} {prova.max_escolhas === 1 ? 'pessoa' : 'pessoas'}</p>
                     )}
-                    {prova.descricao && !prova.tipo_customizado && (
+                    {prova.descricao && (
                       <p className="text-white/60 text-sm">{prova.descricao}</p>
                     )}
                     <p className="text-white/40 text-xs mt-1">

@@ -59,7 +59,7 @@ export default function ProvaCard({
         {tipo_customizado && max_escolhas > 1 && (
           <p className="text-pink-300 text-xs mb-1">Escolha {max_escolhas} {max_escolhas === 1 ? 'pessoa' : 'pessoas'}</p>
         )}
-        {descricao && !tipo_customizado && (
+        {descricao && (
           <p className="text-white/80 text-xs lg:text-sm mb-1">{descricao}</p>
         )}
         <span className="text-white/60 text-[10px] lg:text-xs font-medium">{formatDate(dataProva)}</span>
