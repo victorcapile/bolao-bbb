@@ -277,7 +277,6 @@ export default function Amigos() {
                               {votos.map((aposta) => {
                                 const isMyVote = aposta.user_id === user?.id;
                                 const reacoesAposta = getReacoesAposta(aposta.id);
-                                const isOpen = openReactionsId === aposta.id;
 
                                 return (
                                   <div
