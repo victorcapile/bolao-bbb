@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import type { Prova, Aposta, ReacaoVoto, TipoReacao } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -23,20 +23,9 @@ export default function Amigos() {
   const [loading, setLoading] = useState(true);
   const [reacoes, setReacoes] = useState<ReacaoVoto[]>([]);
   const { user } = useAuth();
-  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadApostasAtivas();
-
-    // Fechar menu ao clicar fora
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setOpenReactionsId(null);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   useEffect(() => {
@@ -160,7 +149,6 @@ export default function Amigos() {
           setReacoes([...reacoes, data]);
         }
       }
-      setOpenReactionsId(null); // Fechar menu após reagir
     } catch (error) {
       console.error('Erro ao reagir:', error);
     }
