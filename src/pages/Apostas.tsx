@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import type { Prova, Participante, Aposta } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { useXP } from '../contexts/XPContext';
 import ProvaCarousel from '../components/ProvaCarousel';
-import XPAnimation from '../components/XPAnimation';
 
 interface ProvaComDetalhes extends Prova {
   vencedor?: Participante;
@@ -18,9 +18,8 @@ export default function Apostas() {
   const [participantes, setParticipantes] = useState<Participante[]>([]);
   const [loading, setLoading] = useState(true);
   const [apostando, setApostando] = useState<string | null>(null);
-  const [showXPAnimation, setShowXPAnimation] = useState(false);
-  const [xpGanho, setXpGanho] = useState(5);
   const { user } = useAuth();
+  const { triggerXPAnimation } = useXP();
 
   useEffect(() => {
     loadProvas();
@@ -226,9 +225,8 @@ export default function Apostas() {
 
           console.log('✅ INSERT bem sucedido, atualizando UI');
 
-          // Mostrar animação de XP
-          setXpGanho(5);
-          setShowXPAnimation(true);
+          // Trigger animação de XP
+          triggerXPAnimation();
 
           // Atualização otimista - adiciona ao estado local imediatamente
           if (data) {
@@ -274,9 +272,8 @@ export default function Apostas() {
 
             if (error) throw error;
 
-            // Mostrar animação de XP para novo voto
-            setXpGanho(5);
-            setShowXPAnimation(true);
+            // Trigger animação de XP para novo voto
+            triggerXPAnimation();
           }
 
           // Recarregar para provas que não são palpite_paredao
@@ -360,13 +357,6 @@ export default function Apostas() {
 
   return (
     <div className="w-full h-full mx-auto px-2 sm:px-4">
-      {showXPAnimation && (
-        <XPAnimation
-          xp={xpGanho}
-          onComplete={() => setShowXPAnimation(false)}
-        />
-      )}
-
       <ProvaCarousel
         provas={provas}
         getParticipantesParaProva={getParticipantesParaProva}

@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useXP } from '../contexts/XPContext';
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import NivelBadge from './NivelBadge';
@@ -7,6 +8,7 @@ import Notificacoes from './Notificacoes';
 
 export default function Navbar() {
   const { user, profile, signOut } = useAuth();
+  const { shouldAnimate } = useXP();
   const [menuOpen, setMenuOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const location = useLocation();
@@ -155,6 +157,7 @@ export default function Navbar() {
                       xp={profile.xp || 0}
                       size="sm"
                       showXP={true}
+                      triggerAnimation={shouldAnimate}
                     />
                   )}
                 </div>

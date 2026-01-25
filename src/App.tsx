@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { XPProvider } from './contexts/XPContext';
 import Navbar from './components/Navbar';
 import FloatingTop3 from './components/FloatingTop3';
 import LiderAnjoWeek from './components/LiderAnjoWeek';
@@ -39,11 +40,12 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <div className="min-h-screen">
-          <Navbar />
-          <FloatingTop3 />
-          <LiderAnjoWeek />
-          <FloatingNews />
+        <XPProvider>
+          <div className="min-h-screen">
+            <Navbar />
+            <FloatingTop3 />
+            <LiderAnjoWeek />
+            <FloatingNews />
           <main className="container mx-auto px-4 py-6 max-w-7xl mt-24 md:mt-20">
             <Routes>
               <Route path="/login" element={<Login />} />
@@ -102,7 +104,8 @@ function App() {
           <p className="text-center text-white/30 text-xs py-6 font-medium">
             Feito com ❤️ por Victor Capilé
           </p>
-        </div>
+          </div>
+        </XPProvider>
       </AuthProvider>
     </Router>
   );

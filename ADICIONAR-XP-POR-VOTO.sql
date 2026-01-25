@@ -1,11 +1,29 @@
 -- Script para adicionar XP quando usuário faz uma aposta
 -- Execute este SQL no Supabase SQL Editor
 
+-- Função para calcular XP necessário para cada nível
+CREATE OR REPLACE FUNCTION calcular_nivel_por_xp(total_xp INTEGER)
+RETURNS INTEGER AS $$
+DECLARE
+  nivel INTEGER := 1;
+  xp_acumulado INTEGER := 0;
+  xp_proximo_nivel INTEGER := 100;
+BEGIN
+  WHILE total_xp >= xp_acumulado + xp_proximo_nivel LOOP
+    xp_acumulado := xp_acumulado + xp_proximo_nivel;
+    nivel := nivel + 1;
+    xp_proximo_nivel := nivel * 100; -- Nível 1: 100 XP, Nível 2: 200 XP, Nível 3: 300 XP
+  END LOOP;
+
+  RETURN nivel;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
 -- Função para dar XP quando usuário faz uma aposta
 CREATE OR REPLACE FUNCTION dar_xp_por_aposta()
 RETURNS TRIGGER AS $$
 DECLARE
-  xp_ganho INTEGER := 5; -- XP ganho por cada aposta
+  xp_ganho INTEGER := 50; -- XP ganho por cada aposta
   novo_xp INTEGER;
   novo_nivel INTEGER;
   nivel_anterior INTEGER;
@@ -18,8 +36,8 @@ BEGIN
   -- Adicionar XP
   novo_xp := novo_xp + xp_ganho;
 
-  -- Calcular novo nível (a cada 100 XP sobe 1 nível)
-  novo_nivel := FLOOR(novo_xp / 100) + 1;
+  -- Calcular novo nível baseado no total de XP
+  novo_nivel := calcular_nivel_por_xp(novo_xp);
 
   -- Atualizar profile
   UPDATE profiles

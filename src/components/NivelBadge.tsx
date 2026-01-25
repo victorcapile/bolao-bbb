@@ -1,14 +1,50 @@
+import { useEffect, useState } from 'react';
+
 interface NivelBadgeProps {
   nivel: number;
   xp: number;
   size?: 'sm' | 'md' | 'lg';
   showXP?: boolean;
+  triggerAnimation?: boolean;
 }
 
-export default function NivelBadge({ nivel, xp, size = 'md', showXP = true }: NivelBadgeProps) {
+export default function NivelBadge({ nivel, xp, size = 'md', showXP = true, triggerAnimation = false }: NivelBadgeProps) {
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [displayXP, setDisplayXP] = useState(xp);
+
   // Calcular XP necessário para próximo nível
   const xpParaProximo = nivel * 100;
-  const porcentagem = (xp / xpParaProximo) * 100;
+  const porcentagem = (displayXP / xpParaProximo) * 100;
+
+  // Trigger animation quando XP mudar
+  useEffect(() => {
+    if (triggerAnimation && xp > displayXP) {
+      setIsAnimating(true);
+
+      // Animar o número de XP subindo
+      const diff = xp - displayXP;
+      const duration = 800;
+      const steps = 20;
+      const increment = diff / steps;
+      const stepDuration = duration / steps;
+
+      let currentStep = 0;
+      const interval = setInterval(() => {
+        currentStep++;
+        if (currentStep >= steps) {
+          setDisplayXP(xp);
+          clearInterval(interval);
+          setTimeout(() => setIsAnimating(false), 500);
+        } else {
+          setDisplayXP(prev => Math.min(prev + increment, xp));
+        }
+      }, stepDuration);
+
+      return () => clearInterval(interval);
+    } else {
+      setDisplayXP(xp);
+    }
+  }, [xp, triggerAnimation]);
 
   // Cores por nível (quanto maior o nível, mais especial a cor)
   const getNivelGradient = (nivel: number): string => {
@@ -52,23 +88,31 @@ export default function NivelBadge({ nivel, xp, size = 'md', showXP = true }: Ni
   return (
     <div className="flex items-center gap-2">
       {/* Badge de nível */}
-      <div className={`${badgeClass} rounded-full bg-gradient-to-r ${gradientClass} text-white font-bold shadow-lg flex items-center gap-1 ${nivel >= 10 ? 'shadow-2xl ring-2 ring-white/30' : ''}`}>
+      <div className={`${badgeClass} rounded-full bg-gradient-to-r ${gradientClass} text-white font-bold shadow-lg flex items-center gap-1 ${nivel >= 10 ? 'shadow-2xl ring-2 ring-white/30' : ''} ${isAnimating ? 'scale-110' : ''} transition-transform duration-300`}>
         <span className="text-[10px] font-semibold">LVL</span>
         <span>{nivel}</span>
       </div>
 
       {/* Barra de XP */}
       {showXP && (
-        <div className="flex flex-col gap-0.5">
-          <div className="w-24 h-1.5 bg-white/20 rounded-full overflow-hidden">
+        <div className={`flex flex-col gap-0.5 ${isAnimating ? 'scale-105' : ''} transition-transform duration-300`}>
+          <div className="w-24 h-1.5 bg-white/20 rounded-full overflow-hidden relative">
             <div
-              className="h-full bg-gradient-to-r from-blue-400 to-purple-500 transition-all duration-500"
+              className={`h-full bg-gradient-to-r from-blue-400 to-purple-500 transition-all duration-500 ${isAnimating ? 'shadow-[0_0_8px_rgba(168,85,247,0.8)]' : ''}`}
               style={{ width: `${Math.min(porcentagem, 100)}%` }}
             />
+            {isAnimating && (
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-pulse" />
+            )}
           </div>
-          <span className="text-[10px] text-white/60 font-medium">
-            {xp}/{xpParaProximo} XP
-          </span>
+          <div className="flex items-center gap-1">
+            <span className={`text-[10px] text-white/60 font-medium ${isAnimating ? 'text-purple-300' : ''} transition-colors duration-300`}>
+              {Math.floor(displayXP)}/{xpParaProximo} XP
+            </span>
+            {isAnimating && (
+              <span className="text-[10px] text-green-400 font-bold animate-pulse">+50</span>
+            )}
+          </div>
         </div>
       )}
     </div>
