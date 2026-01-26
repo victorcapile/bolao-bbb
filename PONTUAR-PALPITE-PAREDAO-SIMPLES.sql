@@ -65,9 +65,10 @@ BEGIN
             AND user_id = aposta_record.user_id
             AND participante_id = ANY(eliminados_ids);
 
-          -- Atualizar pontos totais do usuário
+          -- Atualizar pontos totais e acertos do usuário
           UPDATE profiles
-          SET pontos_totais = pontos_totais + total_pontos
+          SET pontos_totais = pontos_totais + total_pontos,
+              acertos = acertos + acertos_count
           WHERE id = aposta_record.user_id;
         END IF;
       END LOOP;

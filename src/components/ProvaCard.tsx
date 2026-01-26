@@ -148,13 +148,13 @@ export default function ProvaCard({
               <p className="text-orange-200 text-sm">Aguardando definição dos emparedados</p>
             </div>
           ) : (
-            <div className={`flex flex-wrap gap-2 lg:gap-3 flex-1 ${participantesDisponiveis.length <= 5 ? 'justify-center' : 'justify-start'}`}>
+            <div className={`grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 gap-2 lg:gap-3 flex-1 auto-rows-max ${participantesDisponiveis.length <= 3 ? 'justify-items-center' : ''}`}>
               {participantesDisponiveis.map((participante) => {
                 const jaVotou = apostasAtuais.some(ap => ap.participante_id === participante.id);
                 return (
                   <button
                     key={participante.id}
-                    className={`glass-dark rounded-lg lg:rounded-xl p-2 lg:p-3 transition-all hover:scale-105 relative w-20 lg:w-24 ${jaVotou
+                    className={`glass-dark rounded-lg lg:rounded-xl p-2 lg:p-3 transition-all hover:scale-105 relative ${jaVotou
                       ? 'ring-4 ring-emerald-400 bg-gradient-to-br from-emerald-500/50 to-green-500/40 shadow-lg shadow-emerald-500/30 scale-105'
                       : 'hover:bg-white/10'
                       } ${apostando ? 'opacity-50 cursor-wait' : ''} ${!participante.ativo ? 'opacity-20' : ''}`}

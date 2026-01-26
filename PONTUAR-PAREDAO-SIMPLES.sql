@@ -78,15 +78,19 @@ BEGIN
   IF pontos_antigos > 0 THEN
     RAISE NOTICE '🔄 Resetando pontos antigos (%pts)...', pontos_antigos;
 
-    -- Remover pontos dos perfis
+    -- Remover pontos e acertos dos perfis
     FOR user_record IN
-      SELECT user_id, SUM(pontos) as total
+      SELECT
+        user_id,
+        SUM(pontos) as total_pontos,
+        COUNT(*) FILTER (WHERE pontos > 0) as total_acertos
       FROM apostas
       WHERE prova_id = prova_palpite_id AND pontos > 0
       GROUP BY user_id
     LOOP
       UPDATE profiles
-      SET pontos_totais = GREATEST(0, pontos_totais - user_record.total)
+      SET pontos_totais = GREATEST(0, pontos_totais - user_record.total_pontos),
+          acertos = GREATEST(0, acertos - user_record.total_acertos)
       WHERE id = user_record.user_id;
     END LOOP;
 
@@ -146,7 +150,8 @@ BEGIN
       total_acertos := total_acertos + acertos_count;
 
       UPDATE profiles
-      SET pontos_totais = pontos_totais + total_pontos
+      SET pontos_totais = pontos_totais + total_pontos,
+          acertos = acertos + acertos_count
       WHERE id = user_record.user_id;
 
       RAISE NOTICE '   ✓ @% → % acertos = +%pts', user_record.username, acertos_count, total_pontos;
