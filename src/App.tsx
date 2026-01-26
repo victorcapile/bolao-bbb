@@ -12,7 +12,7 @@ import Apostas from './pages/Apostas';
 import Ranking from './pages/Ranking';
 import Amigos from './pages/Amigos';
 import Feed from './pages/Feed';
-import Stats from './pages/Stats';
+import Graph from './pages/Graph';
 import Admin from './pages/Admin';
 import { useEffect } from 'react';
 
@@ -83,10 +83,10 @@ function App() {
                 }
               />
               <Route
-                path="/stats"
+                path="/graph"
                 element={
                   <PrivateRoute>
-                    <Stats />
+                    <Graph />
                   </PrivateRoute>
                 }
               />

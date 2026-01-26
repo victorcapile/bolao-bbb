@@ -90,8 +90,8 @@ export default function Navbar() {
               <Link to="/feed" className={getLinkClasses('/feed')}>
                 Feed
               </Link>
-              <Link to="/stats" className={getLinkClasses('/stats')}>
-                Stats
+              <Link to="/graph" className={getLinkClasses('/graph')}>
+                Graph
               </Link>
               <Link to="/ranking" className={getLinkClasses('/ranking')}>
                 Ranking
@@ -220,11 +220,11 @@ export default function Navbar() {
               Feed
             </Link>
             <Link
-              to="/stats"
+              to="/graph"
               onClick={() => setMenuOpen(false)}
-              className={getLinkClasses('/stats', true)}
+              className={getLinkClasses('/graph', true)}
             >
-              Stats
+              Graph
             </Link>
             <Link
               to="/ranking"

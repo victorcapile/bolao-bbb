@@ -48,8 +48,7 @@ export default function Ranking() {
         .select('*')
         .order('pontos_totais', { ascending: false })
         .order('xp', { ascending: false })
-        .order('nivel', { ascending: false })
-        .order('acertos', { ascending: false });
+        .order('nivel', { ascending: false });
 
       if (error) throw error;
       setRanking(data || []);
@@ -239,10 +238,6 @@ export default function Ranking() {
                     <div className="text-2xl font-bold text-white">{entry.pontos_totais}</div>
                     <div className="text-white/60 text-xs">pontos</div>
                   </div>
-                  <div className="text-center hidden sm:block">
-                    <div className="text-xl font-bold text-green-400">{entry.acertos}</div>
-                    <div className="text-white/60 text-xs">acertos</div>
-                  </div>
                 </div>
               </div>
             </div>
@@ -344,12 +339,6 @@ export default function Ranking() {
                   <div>
                     <div className="text-white/60 text-sm">Pontos</div>
                     <div className="text-white font-bold text-2xl">{myData.pontos_totais}</div>
-                  </div>
-                  <div>
-                    <div className="text-white/60 text-sm">Acertos</div>
-                    <div className="text-green-400 font-bold text-2xl">
-                      {myData.acertos}
-                    </div>
                   </div>
                 </div>
               </div>
