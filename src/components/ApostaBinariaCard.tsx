@@ -151,12 +151,12 @@ export default function ApostaBinariaCard({
               disabled={apostando || !votacao_aberta}
               className={`glass-dark rounded-xl p-4 lg:p-6 transition-all hover:scale-105 relative ${
                 aposta?.resposta_binaria === 'nao'
-                  ? 'ring-4 ring-emerald-400 bg-gradient-to-br from-emerald-500/50 to-green-500/40 shadow-lg shadow-emerald-500/30 scale-105'
+                  ? 'ring-4 ring-red-400 bg-gradient-to-br from-red-500/50 to-rose-500/40 shadow-lg shadow-red-500/30 scale-105'
                   : 'hover:bg-white/10'
               } ${apostando ? 'opacity-50 cursor-wait' : ''}`}
             >
               {aposta?.resposta_binaria === 'nao' && (
-                <div className="absolute -top-2 -right-2 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full w-6 h-6 lg:w-8 lg:h-8 flex items-center justify-center shadow-lg animate-pulse z-20">
+                <div className="absolute -top-2 -right-2 bg-gradient-to-br from-red-400 to-rose-500 rounded-full w-6 h-6 lg:w-8 lg:h-8 flex items-center justify-center shadow-lg animate-pulse z-20">
                   <span className="text-white text-sm lg:text-base font-bold">✓</span>
                 </div>
               )}
