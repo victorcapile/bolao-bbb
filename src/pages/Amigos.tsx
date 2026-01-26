@@ -225,8 +225,11 @@ export default function Amigos() {
                 <div className="flex items-center justify-between mb-5 border-b border-white/10 pb-3">
                   <div>
                     <h2 className="text-xl font-bold text-white">
-                      {getTipoProvaLabel(prova.tipo)}
+                      {prova.tipo_customizado ? prova.titulo_customizado : getTipoProvaLabel(prova.tipo)}
                     </h2>
+                    {prova.tipo_customizado && (
+                      <p className="text-pink-300 text-xs">Prova Customizada</p>
+                    )}
                     {prova.descricao && (
                       <p className="text-white/60 text-sm">{prova.descricao}</p>
                     )}
