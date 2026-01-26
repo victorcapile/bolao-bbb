@@ -79,18 +79,24 @@ export default function ApostaBinariaCard({
         <>
           {/* Sua aposta */}
           {aposta ? (
-            <div className="bg-purple-500/10 rounded-xl p-3 border-2 border-purple-500/30 mb-3">
-              <p className="text-purple-200 text-[10px] lg:text-xs mb-2 font-medium">
-                ✓ Sua aposta
-              </p>
-              <p className="text-white font-bold text-sm lg:text-base uppercase">{aposta.resposta_binaria}</p>
-              <p className="text-purple-300 text-[9px] mt-1 italic">
-                Clique em outra opção para mudar seu voto
-              </p>
+            <div className="bg-gradient-to-br from-purple-500/20 to-fuchsia-500/20 rounded-xl p-4 border-2 border-purple-400/40 mb-4 shadow-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-purple-200 text-xs lg:text-sm font-bold flex items-center gap-2">
+                  <span className="w-5 h-5 bg-purple-500/30 rounded-full flex items-center justify-center">✓</span>
+                  Sua Aposta
+                </span>
+                <span className="text-purple-300 text-[10px] italic">Clique para mudar</span>
+              </div>
+              <div className="bg-white/10 rounded-lg p-3 text-center">
+                <p className="text-white font-extrabold text-2xl lg:text-3xl uppercase tracking-wide">
+                  {aposta.resposta_binaria}
+                </p>
+              </div>
             </div>
           ) : (
-            <div className="bg-orange-500/10 rounded-xl p-2 border border-orange-500/30 mb-3 text-center">
-              <p className="text-orange-200 text-[10px] lg:text-xs italic">
+            <div className="bg-gradient-to-br from-orange-500/10 to-amber-500/10 rounded-xl p-3 border border-orange-500/30 mb-4 text-center">
+              <p className="text-orange-200 text-xs lg:text-sm font-medium flex items-center justify-center gap-2">
+                <span className="text-base">👇</span>
                 Escolha SIM ou NÃO para fazer sua aposta
               </p>
             </div>

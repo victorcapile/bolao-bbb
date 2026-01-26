@@ -73,7 +73,7 @@ export default function Amigos() {
         .select('id, username, avatar_url')
         .in('id', userIds);
 
-      const participanteIds = [...new Set(apostas.map(a => a.participante_id))];
+      const participanteIds = [...new Set(apostas.map(a => a.participante_id).filter(id => id !== null))];
       const { data: participantes } = await supabase
         .from('participantes')
         .select('*')
@@ -88,8 +88,8 @@ export default function Amigos() {
           ...aposta,
           username: profile?.username || 'Usuário',
           avatar_url: profile?.avatar_url || null,
-          participante_nome: participante?.nome || 'N/A',
-          prova_descricao: prova?.descricao || '',
+          participante_nome: aposta.resposta_binaria ? aposta.resposta_binaria.toUpperCase() : (participante?.nome || 'N/A'),
+          prova_descricao: prova?.descricao || prova?.pergunta || '',
           prova_tipo: prova?.tipo || '',
         };
       });
@@ -253,13 +253,46 @@ export default function Amigos() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {Object.entries(votosPorParticipante)
                         .sort((a, b) => b[1].length - a[1].length)
-                        .map(([participanteNome, votos]) => (
-                          <div key={participanteNome} className="bg-white/5 rounded-xl border border-white/10 overflow-hidden">
-                            <div className="bg-white/5 px-4 py-2 border-b border-white/10 flex items-center justify-between">
-                              <h3 className="text-white font-bold text-sm">
+                        .map(([participanteNome, votos]) => {
+                          const isBinaryVote = participanteNome === 'SIM' || participanteNome === 'NÃO' || participanteNome === 'NAO';
+                          const isSimVote = participanteNome === 'SIM';
+
+                          return (
+                          <div key={participanteNome} className={`rounded-xl border overflow-hidden ${
+                            isBinaryVote
+                              ? isSimVote
+                                ? 'bg-green-500/10 border-green-500/30'
+                                : 'bg-red-500/10 border-red-500/30'
+                              : 'bg-white/5 border-white/10'
+                          }`}>
+                            <div className={`px-4 py-2 border-b flex items-center justify-between ${
+                              isBinaryVote
+                                ? isSimVote
+                                  ? 'bg-green-500/20 border-green-500/30'
+                                  : 'bg-red-500/20 border-red-500/30'
+                                : 'bg-white/5 border-white/10'
+                            }`}>
+                              <h3 className={`font-bold text-sm flex items-center gap-2 ${
+                                isBinaryVote
+                                  ? isSimVote
+                                    ? 'text-green-300'
+                                    : 'text-red-300'
+                                  : 'text-white'
+                              }`}>
+                                {isBinaryVote && (
+                                  <span className="text-lg">
+                                    {isSimVote ? '✓' : '✕'}
+                                  </span>
+                                )}
                                 {participanteNome}
                               </h3>
-                              <span className="px-2 py-0.5 rounded-full bg-white/10 text-white text-xs font-medium">
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                isBinaryVote
+                                  ? isSimVote
+                                    ? 'bg-green-500/30 text-green-200'
+                                    : 'bg-red-500/30 text-red-200'
+                                  : 'bg-white/10 text-white'
+                              }`}>
                                 {votos.length}
                               </span>
                             </div>
@@ -350,7 +383,8 @@ export default function Amigos() {
                               })}
                             </div>
                           </div>
-                        ))}
+                        );
+                        })}
                     </div>
                   );
                 })()}
