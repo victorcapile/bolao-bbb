@@ -17,6 +17,7 @@ export default function Admin() {
     titulo_customizado: '',
     max_escolhas: 1
   });
+  const [emparedadosSelecionados, setEmparedadosSelecionados] = useState<string[]>([]);
   const [novoParticipante, setNovoParticipante] = useState({ nome: '', foto_url: '' });
 
   useEffect(() => {
@@ -87,8 +88,15 @@ export default function Admin() {
       }
     }
 
+    // Validar emparedados para paredão e bate_volta
+    if ((novaProva.tipo === 'paredao' || novaProva.tipo === 'bate_volta') && emparedadosSelecionados.length === 0) {
+      alert('Selecione pelo menos 1 participante para o paredão/bate e volta');
+      return;
+    }
+
     try {
-      const { error } = await supabase
+      // Inserir a prova
+      const { data: provaData, error: provaError } = await supabase
         .from('provas')
         .insert({
           tipo: novaProva.tipo_customizado ? 'lider' : novaProva.tipo,
@@ -98,9 +106,26 @@ export default function Admin() {
           tipo_customizado: novaProva.tipo_customizado,
           titulo_customizado: novaProva.tipo_customizado ? novaProva.titulo_customizado : null,
           max_escolhas: novaProva.max_escolhas,
-        });
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (provaError) throw provaError;
+
+      // Se for paredão ou bate_volta, inserir emparedados
+      if ((novaProva.tipo === 'paredao' || novaProva.tipo === 'bate_volta') && provaData) {
+        const emparedadosData = emparedadosSelecionados.map(participanteId => ({
+          prova_id: provaData.id,
+          participante_id: participanteId
+        }));
+
+        const { error: emparedadosError } = await supabase
+          .from('emparedados')
+          .insert(emparedadosData);
+
+        if (emparedadosError) throw emparedadosError;
+      }
+
       alert('Prova criada com sucesso! ✅');
       setNovaProva({
         tipo: '',
@@ -110,6 +135,7 @@ export default function Admin() {
         titulo_customizado: '',
         max_escolhas: 1
       });
+      setEmparedadosSelecionados([]);
       loadData();
     } catch (error) {
       console.error('Erro ao criar prova:', error);
@@ -344,16 +370,61 @@ export default function Admin() {
 
             {/* Campos para Prova Padrão */}
             {!novaProva.tipo_customizado && (
-              <select
-                value={novaProva.tipo}
-                onChange={(e) => setNovaProva({ ...novaProva, tipo: e.target.value })}
-                className="w-full px-3 py-2 text-sm rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="">Tipo *</option>
-                <option value="lider">Líder</option>
-                <option value="anjo">Anjo</option>
-                <option value="bate_volta">Bate e Volta</option>
-              </select>
+              <>
+                <select
+                  value={novaProva.tipo}
+                  onChange={(e) => {
+                    setNovaProva({ ...novaProva, tipo: e.target.value });
+                    if (e.target.value !== 'paredao' && e.target.value !== 'bate_volta') {
+                      setEmparedadosSelecionados([]);
+                    }
+                  }}
+                  className="w-full px-3 py-2 text-sm rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="">Tipo *</option>
+                  <option value="lider">Líder</option>
+                  <option value="anjo">Anjo</option>
+                  <option value="bate_volta">Bate e Volta</option>
+                  <option value="paredao">Paredão</option>
+                </select>
+
+                {/* Seleção de Emparedados para Paredão e Bate e Volta */}
+                {(novaProva.tipo === 'paredao' || novaProva.tipo === 'bate_volta') && (
+                  <div className="border border-white/20 rounded-lg p-3 bg-white/5">
+                    <label className="block text-white/80 text-xs font-medium mb-2">
+                      Selecione os emparedados ({emparedadosSelecionados.length} selecionados):
+                    </label>
+                    <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
+                      {participantes
+                        .filter(p => p.ativo)
+                        .map(participante => (
+                          <label
+                            key={participante.id}
+                            className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all text-xs ${
+                              emparedadosSelecionados.includes(participante.id)
+                                ? 'bg-purple-500/30 border border-purple-400/50'
+                                : 'bg-white/5 border border-white/10 hover:bg-white/10'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={emparedadosSelecionados.includes(participante.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setEmparedadosSelecionados([...emparedadosSelecionados, participante.id]);
+                                } else {
+                                  setEmparedadosSelecionados(emparedadosSelecionados.filter(id => id !== participante.id));
+                                }
+                              }}
+                              className="w-4 h-4"
+                            />
+                            <span className="text-white truncate">{participante.nome}</span>
+                          </label>
+                        ))}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
 
             {/* Campos para Prova Customizada */}
