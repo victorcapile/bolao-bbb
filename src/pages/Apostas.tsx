@@ -48,7 +48,7 @@ export default function Apostas() {
       if (error) throw error;
 
       // Carregar emparedados para cada prova
-      await supabase
+      const { data: emparedadosData } = await supabase
         .from('emparedados')
         .select('prova_id, participante_id');
 
@@ -77,6 +77,9 @@ export default function Apostas() {
             created_at: a.created_at
           }));
 
+          // Buscar emparedados desta prova
+          const emparedadosDaProva = emparedadosData?.filter((e) => e.prova_id === prova.id).map((e) => e.participante_id) || [];
+
           return {
             ...prova,
             aposta: aposta ? {
@@ -89,7 +92,7 @@ export default function Apostas() {
             } : undefined,
             apostas: apostasLimpas.length > 0 ? apostasLimpas : undefined,
             participante_apostado: aposta?.participantes || undefined,
-            emparedados: [],
+            emparedados: emparedadosDaProva,
           };
         });
 
@@ -103,10 +106,15 @@ export default function Apostas() {
 
         setProvas(provasComApostas);
       } else {
-        const provasOrdenadas = provasData.map(prova => ({
-          ...prova,
-          emparedados: [],
-        }));
+        const provasOrdenadas = provasData.map(prova => {
+          // Buscar emparedados desta prova
+          const emparedadosDaProva = emparedadosData?.filter((e) => e.prova_id === prova.id).map((e) => e.participante_id) || [];
+
+          return {
+            ...prova,
+            emparedados: emparedadosDaProva,
+          };
+        });
 
         // Ordenar: abertas primeiro, depois por tipo
         provasOrdenadas.sort((a, b) => {

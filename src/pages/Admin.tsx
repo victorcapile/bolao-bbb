@@ -4,10 +4,14 @@ import { useAuth } from '../contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 import type { Participante, Prova } from '../lib/supabase';
 
+interface ProvaComEmparedados extends Prova {
+  emparedados?: string[];
+}
+
 export default function Admin() {
   const { profile } = useAuth();
   const [participantes, setParticipantes] = useState<Participante[]>([]);
-  const [provas, setProvas] = useState<Prova[]>([]);
+  const [provas, setProvas] = useState<ProvaComEmparedados[]>([]);
   const [loading, setLoading] = useState(true);
   const [novaProva, setNovaProva] = useState({
     tipo: '',
@@ -26,13 +30,23 @@ export default function Admin() {
 
   const loadData = async () => {
     try {
-      const [{ data: participantesData }, { data: provasData }] = await Promise.all([
+      const [{ data: participantesData }, { data: provasData }, { data: emparedadosData }] = await Promise.all([
         supabase.from('participantes').select('*').order('nome'),
         supabase.from('provas').select('*').order('data_prova', { ascending: false }),
+        supabase.from('emparedados').select('prova_id, participante_id'),
       ]);
 
+      // Mapear emparedados para cada prova
+      const provasComEmparedados = provasData?.map(prova => {
+        const emparedadosDaProva = emparedadosData?.filter((e) => e.prova_id === prova.id).map((e) => e.participante_id) || [];
+        return {
+          ...prova,
+          emparedados: emparedadosDaProva,
+        };
+      }) || [];
+
       setParticipantes(participantesData || []);
-      setProvas(provasData || []);
+      setProvas(provasComEmparedados);
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
     } finally {
@@ -624,6 +638,21 @@ export default function Admin() {
                       <p className="text-white/40 text-xs mt-1">
                         {new Date(prova.data_prova).toLocaleDateString('pt-BR')}
                       </p>
+                      {(prova.tipo === 'paredao' || prova.tipo === 'bate_volta') && prova.emparedados && prova.emparedados.length > 0 && (
+                        <div className="mt-2">
+                          <p className="text-white/60 text-xs mb-1">Emparedados:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {prova.emparedados.map((emparedadoId) => {
+                              const participante = participantes.find(p => p.id === emparedadoId);
+                              return participante ? (
+                                <span key={emparedadoId} className="px-2 py-0.5 rounded-full bg-red-500/20 text-red-300 text-xs">
+                                  {participante.nome}
+                                </span>
+                              ) : null;
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -717,6 +746,21 @@ export default function Admin() {
                         <p className="text-white/40 text-xs mt-1">
                           {new Date(prova.data_prova).toLocaleDateString('pt-BR')}
                         </p>
+                        {(prova.tipo === 'paredao' || prova.tipo === 'bate_volta') && prova.emparedados && prova.emparedados.length > 0 && (
+                          <div className="mt-2">
+                            <p className="text-white/60 text-xs mb-1">Emparedados:</p>
+                            <div className="flex flex-wrap gap-1">
+                              {prova.emparedados.map((emparedadoId) => {
+                                const participante = participantes.find(p => p.id === emparedadoId);
+                                return participante ? (
+                                  <span key={emparedadoId} className="px-2 py-0.5 rounded-full bg-red-500/20 text-red-300 text-xs">
+                                    {participante.nome}
+                                  </span>
+                                ) : null;
+                              })}
+                            </div>
+                          </div>
+                        )}
                         {vencedor && (
                           <div className="mt-2 flex items-center gap-2">
                             <span className="text-yellow-400 text-lg">🏆</span>
