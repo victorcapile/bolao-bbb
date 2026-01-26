@@ -74,7 +74,8 @@ export default function Apostas() {
             prova_id: a.prova_id,
             participante_id: a.participante_id,
             pontos: a.pontos,
-            created_at: a.created_at
+            created_at: a.created_at,
+            resposta_binaria: a.resposta_binaria || null
           }));
 
           // Buscar emparedados desta prova
@@ -88,7 +89,8 @@ export default function Apostas() {
               prova_id: aposta.prova_id,
               participante_id: aposta.participante_id,
               pontos: aposta.pontos,
-              created_at: aposta.created_at
+              created_at: aposta.created_at,
+              resposta_binaria: aposta.resposta_binaria || null
             } : undefined,
             apostas: apostasLimpas.length > 0 ? apostasLimpas : undefined,
             participante_apostado: aposta?.participantes || undefined,
