@@ -36,6 +36,12 @@ export interface Prova {
   max_escolhas: number;
   tipo_customizado: boolean;
   votacao_aberta: boolean;
+  is_aposta_binaria: boolean;
+  pergunta: string | null;
+  odds_sim: number | null;
+  odds_nao: number | null;
+  pontos_base: number | null;
+  resposta_correta: string | null;
 }
 
 export interface Aposta {
@@ -45,6 +51,7 @@ export interface Aposta {
   participante_id: string;
   pontos: number;
   created_at: string;
+  resposta_binaria: string | null;
 }
 
 export interface Profile {

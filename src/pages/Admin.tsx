@@ -19,7 +19,12 @@ export default function Admin() {
     descricao: '',
     tipo_customizado: false,
     titulo_customizado: '',
-    max_escolhas: 1
+    max_escolhas: 1,
+    is_aposta_binaria: false,
+    pergunta: '',
+    odds_sim: 1.0,
+    odds_nao: 1.0,
+    pontos_base: 5
   });
   const [emparedadosSelecionados, setEmparedadosSelecionados] = useState<string[]>([]);
   const [novoParticipante, setNovoParticipante] = useState({ nome: '', foto_url: '' });
@@ -84,13 +89,39 @@ export default function Admin() {
     }
   };
 
+  const fecharApostaBinaria = async (provaId: string, respostaCorreta: 'sim' | 'nao') => {
+    try {
+      const { error } = await supabase
+        .from('provas')
+        .update({ fechada: true, resposta_correta: respostaCorreta })
+        .eq('id', provaId);
+
+      if (error) throw error;
+      alert('Aposta binária fechada e pontuada com sucesso! ✅');
+      loadData();
+    } catch (error) {
+      console.error('Erro ao fechar aposta binária:', error);
+      alert('Erro ao fechar aposta binária');
+    }
+  };
+
   const criarProva = async () => {
-    if (!novaProva.data_prova) {
+    // Para apostas binárias, não precisa de data (usa data atual)
+    if (!novaProva.is_aposta_binaria && !novaProva.data_prova) {
       alert('Preencha a data da prova');
       return;
     }
 
-    if (novaProva.tipo_customizado) {
+    if (novaProva.is_aposta_binaria) {
+      if (!novaProva.pergunta) {
+        alert('Preencha a pergunta da aposta');
+        return;
+      }
+      if (novaProva.odds_sim <= 0 || novaProva.odds_nao <= 0) {
+        alert('As odds devem ser maiores que 0');
+        return;
+      }
+    } else if (novaProva.tipo_customizado) {
       if (!novaProva.titulo_customizado) {
         alert('Preencha o título da prova customizada');
         return;
@@ -110,16 +141,25 @@ export default function Admin() {
 
     try {
       // Inserir a prova
+      const dataProva = novaProva.is_aposta_binaria
+        ? new Date().toISOString().split('T')[0] // Data atual para apostas binárias
+        : novaProva.data_prova;
+
       const { data: provaData, error: provaError } = await supabase
         .from('provas')
         .insert({
-          tipo: novaProva.tipo_customizado ? 'lider' : novaProva.tipo,
-          data_prova: novaProva.data_prova,
+          tipo: novaProva.is_aposta_binaria ? 'lider' : (novaProva.tipo_customizado ? 'lider' : novaProva.tipo),
+          data_prova: dataProva,
           descricao: novaProva.descricao || null,
           fechada: false,
           tipo_customizado: novaProva.tipo_customizado,
           titulo_customizado: novaProva.tipo_customizado ? novaProva.titulo_customizado : null,
           max_escolhas: novaProva.max_escolhas,
+          is_aposta_binaria: novaProva.is_aposta_binaria,
+          pergunta: novaProva.is_aposta_binaria ? novaProva.pergunta : null,
+          odds_sim: novaProva.is_aposta_binaria ? novaProva.odds_sim : null,
+          odds_nao: novaProva.is_aposta_binaria ? novaProva.odds_nao : null,
+          pontos_base: novaProva.is_aposta_binaria ? novaProva.pontos_base : null,
         })
         .select()
         .single();
@@ -147,7 +187,12 @@ export default function Admin() {
         descricao: '',
         tipo_customizado: false,
         titulo_customizado: '',
-        max_escolhas: 1
+        max_escolhas: 1,
+        is_aposta_binaria: false,
+        pergunta: '',
+        odds_sim: 1.0,
+        odds_nao: 1.0,
+        pontos_base: 5
       });
       setEmparedadosSelecionados([]);
       loadData();
@@ -285,7 +330,14 @@ export default function Admin() {
     }
 
     try {
-      // Primeiro deletar as apostas relacionadas
+      // Deletar na ordem correta para evitar erros de foreign key
+      // 1. Deletar apostas_log (se existir)
+      await supabase.from('apostas_log').delete().eq('prova_id', provaId);
+
+      // 2. Deletar emparedados
+      await supabase.from('emparedados').delete().eq('prova_id', provaId);
+
+      // 3. Deletar apostas
       await supabase.from('apostas').delete().eq('prova_id', provaId);
 
       // Depois deletar a prova
@@ -358,12 +410,12 @@ export default function Admin() {
         <div className="glass rounded-xl p-4">
           <h2 className="text-lg font-bold text-white mb-3">➕ Criar Prova</h2>
           <div className="space-y-2">
-            {/* Toggle: Prova Padrão ou Customizada */}
+            {/* Toggle: Prova Padrão, Customizada ou Aposta Binária */}
             <div className="flex items-center gap-2 mb-2">
               <button
-                onClick={() => setNovaProva({ ...novaProva, tipo_customizado: false, titulo_customizado: '', max_escolhas: 1 })}
+                onClick={() => setNovaProva({ ...novaProva, tipo_customizado: false, is_aposta_binaria: false, titulo_customizado: '', max_escolhas: 1 })}
                 className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all ${
-                  !novaProva.tipo_customizado
+                  !novaProva.tipo_customizado && !novaProva.is_aposta_binaria
                     ? 'bg-purple-500/30 text-purple-200 border border-purple-500/50'
                     : 'bg-white/5 text-white/60 hover:bg-white/10'
                 }`}
@@ -371,14 +423,24 @@ export default function Admin() {
                 Prova Padrão
               </button>
               <button
-                onClick={() => setNovaProva({ ...novaProva, tipo_customizado: true, tipo: '' })}
+                onClick={() => setNovaProva({ ...novaProva, tipo_customizado: true, is_aposta_binaria: false, tipo: '' })}
                 className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all ${
-                  novaProva.tipo_customizado
+                  novaProva.tipo_customizado && !novaProva.is_aposta_binaria
                     ? 'bg-pink-500/30 text-pink-200 border border-pink-500/50'
                     : 'bg-white/5 text-white/60 hover:bg-white/10'
                 }`}
               >
-                Prova Customizada
+                Customizada
+              </button>
+              <button
+                onClick={() => setNovaProva({ ...novaProva, tipo_customizado: false, is_aposta_binaria: true, tipo: '' })}
+                className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all ${
+                  novaProva.is_aposta_binaria
+                    ? 'bg-orange-500/30 text-orange-200 border border-orange-500/50'
+                    : 'bg-white/5 text-white/60 hover:bg-white/10'
+                }`}
+              >
+                Sim/Não
               </button>
             </div>
 
@@ -463,22 +525,75 @@ export default function Admin() {
               </>
             )}
 
-            {/* Descrição (opcional) */}
-            <input
-              type="text"
-              value={novaProva.descricao}
-              onChange={(e) => setNovaProva({ ...novaProva, descricao: e.target.value })}
-              placeholder="Descrição (opcional)"
-              className="w-full px-3 py-2 text-sm rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
+            {/* Campos para Aposta Binária */}
+            {novaProva.is_aposta_binaria && (
+              <>
+                <input
+                  type="text"
+                  value={novaProva.pergunta}
+                  onChange={(e) => setNovaProva({ ...novaProva, pergunta: e.target.value })}
+                  placeholder="Ex: O Big Fone vai tocar essa semana?"
+                  className="w-full px-3 py-2 text-sm rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                />
+                <div>
+                  <label className="block text-white/70 text-xs mb-1">Probabilidade de SIM (%)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="99"
+                    value={Math.round((1 / novaProva.odds_sim) * 100)}
+                    onChange={(e) => {
+                      const probSim = parseInt(e.target.value);
+                      const probNao = 100 - probSim;
+                      // Odds = 100 / probabilidade (ajustado para dar pontos proporcionais)
+                      const oddsSim = 100 / probSim;
+                      const oddsNao = 100 / probNao;
+                      setNovaProva({
+                        ...novaProva,
+                        odds_sim: parseFloat(oddsSim.toFixed(2)),
+                        odds_nao: parseFloat(oddsNao.toFixed(2))
+                      });
+                    }}
+                    className="w-full px-3 py-2 text-sm rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
+                  <p className="text-white/50 text-[10px] mt-1">
+                    SIM: {Math.round((1 / novaProva.odds_sim) * 100)}% de chance → {Math.round(novaProva.pontos_base * novaProva.odds_sim)}pts |
+                    NÃO: {Math.round((1 / novaProva.odds_nao) * 100)}% de chance → {Math.round(novaProva.pontos_base * novaProva.odds_nao)}pts
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-white/70 text-xs mb-1">Pontos base</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={novaProva.pontos_base}
+                    onChange={(e) => setNovaProva({ ...novaProva, pontos_base: parseInt(e.target.value) })}
+                    className="w-full px-3 py-2 text-sm rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
+                </div>
+              </>
+            )}
 
-            {/* Data da Prova */}
-            <input
-              type="date"
-              value={novaProva.data_prova}
-              onChange={(e) => setNovaProva({ ...novaProva, data_prova: e.target.value })}
-              className="w-full px-3 py-2 text-sm rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
+            {/* Descrição (opcional) */}
+            {!novaProva.is_aposta_binaria && (
+              <input
+                type="text"
+                value={novaProva.descricao}
+                onChange={(e) => setNovaProva({ ...novaProva, descricao: e.target.value })}
+                placeholder="Descrição (opcional)"
+                className="w-full px-3 py-2 text-sm rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            )}
+
+            {/* Data da Prova - Somente para provas normais */}
+            {!novaProva.is_aposta_binaria && (
+              <input
+                type="date"
+                value={novaProva.data_prova}
+                onChange={(e) => setNovaProva({ ...novaProva, data_prova: e.target.value })}
+                className="w-full px-3 py-2 text-sm rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            )}
 
             <button
               onClick={criarProva}
@@ -632,12 +747,24 @@ export default function Admin() {
                       {prova.tipo_customizado && (
                         <p className="text-pink-300 text-xs">Prova Customizada • Escolher {prova.max_escolhas} {prova.max_escolhas === 1 ? 'pessoa' : 'pessoas'}</p>
                       )}
-                      {prova.descricao && (
+                      {prova.is_aposta_binaria && (
+                        <>
+                          <p className="text-orange-300 text-xs">Aposta Binária (Sim/Não)</p>
+                          <p className="text-white/80 text-sm mt-1">{prova.pergunta}</p>
+                          <div className="flex gap-3 mt-2 text-xs">
+                            <span className="text-green-300">SIM: {prova.pontos_base}pts × {prova.odds_sim} = {Math.round(prova.pontos_base * prova.odds_sim)}pts</span>
+                            <span className="text-red-300">NÃO: {prova.pontos_base}pts × {prova.odds_nao} = {Math.round(prova.pontos_base * prova.odds_nao)}pts</span>
+                          </div>
+                        </>
+                      )}
+                      {prova.descricao && !prova.is_aposta_binaria && (
                         <p className="text-white/60 text-sm">{prova.descricao}</p>
                       )}
-                      <p className="text-white/40 text-xs mt-1">
-                        {new Date(prova.data_prova).toLocaleDateString('pt-BR')}
-                      </p>
+                      {!prova.is_aposta_binaria && (
+                        <p className="text-white/40 text-xs mt-1">
+                          {new Date(prova.data_prova).toLocaleDateString('pt-BR')}
+                        </p>
+                      )}
                       {(prova.tipo === 'paredao' || prova.tipo === 'bate_volta') && prova.emparedados && prova.emparedados.length > 0 && (
                         <div className="mt-2">
                           <p className="text-white/60 text-xs mb-1">Emparedados:</p>
@@ -657,28 +784,50 @@ export default function Admin() {
                   </div>
 
                   <div className="space-y-3">
-                    <div>
-                      <label className="block text-white/80 text-sm mb-2">
-                        Selecione o vencedor para fechar a prova:
-                      </label>
-                      <select
-                        onChange={(e) => {
-                          if (e.target.value) {
-                            fecharProva(prova.id, e.target.value);
-                          }
-                        }}
-                        className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      >
-                        <option value="">Selecione o vencedor...</option>
-                        {participantes
-                          .filter((p) => p.ativo)
-                          .map((participante) => (
-                            <option key={participante.id} value={participante.id}>
-                              {participante.nome}
-                            </option>
-                          ))}
-                      </select>
-                    </div>
+                    {prova.is_aposta_binaria ? (
+                      <div>
+                        <label className="block text-white/80 text-sm mb-2">
+                          Selecione a resposta correta para fechar:
+                        </label>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => fecharApostaBinaria(prova.id, 'sim')}
+                            className="flex-1 py-3 px-4 rounded-lg bg-green-500/20 hover:bg-green-500/30 text-green-200 border border-green-500/30 font-semibold transition-all"
+                          >
+                            ✓ SIM
+                          </button>
+                          <button
+                            onClick={() => fecharApostaBinaria(prova.id, 'nao')}
+                            className="flex-1 py-3 px-4 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-200 border border-red-500/30 font-semibold transition-all"
+                          >
+                            ✕ NÃO
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <label className="block text-white/80 text-sm mb-2">
+                          Selecione o vencedor para fechar a prova:
+                        </label>
+                        <select
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              fecharProva(prova.id, e.target.value);
+                            }
+                          }}
+                          className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        >
+                          <option value="">Selecione o vencedor...</option>
+                          {participantes
+                            .filter((p) => p.ativo)
+                            .map((participante) => (
+                              <option key={participante.id} value={participante.id}>
+                                {participante.nome}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                    )}
 
                     <div className="space-y-2">
                       <button
@@ -740,12 +889,23 @@ export default function Admin() {
                         {prova.tipo_customizado && (
                           <p className="text-pink-300 text-xs">Prova Customizada • {prova.max_escolhas} {prova.max_escolhas === 1 ? 'pessoa' : 'pessoas'}</p>
                         )}
-                        {prova.descricao && (
+                        {prova.is_aposta_binaria && (
+                          <>
+                            <p className="text-orange-300 text-xs">Aposta Binária (Sim/Não)</p>
+                            <p className="text-white/80 text-sm mt-1">{prova.pergunta}</p>
+                            <p className="text-white/60 text-xs mt-1">
+                              Resultado: <span className="font-bold text-white uppercase">{prova.resposta_correta}</span>
+                            </p>
+                          </>
+                        )}
+                        {prova.descricao && !prova.is_aposta_binaria && (
                           <p className="text-white/60 text-sm">{prova.descricao}</p>
                         )}
-                        <p className="text-white/40 text-xs mt-1">
-                          {new Date(prova.data_prova).toLocaleDateString('pt-BR')}
-                        </p>
+                        {!prova.is_aposta_binaria && (
+                          <p className="text-white/40 text-xs mt-1">
+                            {new Date(prova.data_prova).toLocaleDateString('pt-BR')}
+                          </p>
+                        )}
                         {(prova.tipo === 'paredao' || prova.tipo === 'bate_volta') && prova.emparedados && prova.emparedados.length > 0 && (
                           <div className="mt-2">
                             <p className="text-white/60 text-xs mb-1">Emparedados:</p>

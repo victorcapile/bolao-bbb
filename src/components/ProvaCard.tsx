@@ -159,21 +159,11 @@ export default function ProvaCard({
                       : 'hover:bg-white/10'
                       } ${apostando ? 'opacity-50 cursor-wait' : ''} ${!participante.ativo ? 'opacity-20' : ''}`}
                     onClick={() => onVotar(participante.id)}
-                    disabled={apostando || !participante.ativo || (!isPalpiteParedao && apostasAtuais.length > 0 && !jaVotou)}
+                    disabled={apostando || !participante.ativo}
                   >
                     {jaVotou && (
                       <div className="absolute -top-1.5 -right-1.5 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full w-5 h-5 lg:w-6 lg:h-6 flex items-center justify-center shadow-lg animate-pulse z-20">
                         <span className="text-white text-xs font-bold">✓</span>
-                      </div>
-                    )}
-                    {participante.is_lider_atual && (
-                      <div className="absolute -top-1.5 -left-1.5 lg:-top-2 lg:-left-2 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full w-6 h-6 lg:w-10 lg:h-10 flex items-center justify-center shadow-xl border border-yellow-300/50 z-10">
-                        <span className="text-sm lg:text-xl">👑</span>
-                      </div>
-                    )}
-                    {participante.is_anjo_atual && (
-                      <div className="absolute -top-1.5 -right-1.5 lg:-top-2 lg:-right-2 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full w-6 h-6 lg:w-10 lg:h-10 flex items-center justify-center shadow-xl border border-blue-300/50 z-10">
-                        <span className="text-sm lg:text-xl">😇</span>
                       </div>
                     )}
                     {participante.foto_url && (

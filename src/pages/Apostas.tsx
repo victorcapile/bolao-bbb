@@ -145,6 +145,54 @@ export default function Apostas() {
     }
   };
 
+  const fazerApostaBinaria = async (provaId: string, resposta: 'sim' | 'nao') => {
+    if (!user) return;
+
+    const prova = provas.find((p) => p.id === provaId);
+    if (prova && !prova.votacao_aberta) {
+      alert('⚠️ A votação para esta prova foi encerrada! Não é mais possível fazer apostas.');
+      return;
+    }
+
+    setApostando(provaId);
+    try {
+      const apostaExistente = prova?.aposta;
+
+      if (apostaExistente) {
+        // Se já votou, atualiza a resposta
+        const { error } = await supabase
+          .from('apostas')
+          .update({ resposta_binaria: resposta })
+          .eq('id', apostaExistente.id);
+
+        if (error) throw error;
+      } else {
+        // Nova aposta (sem participante_id para apostas binárias)
+        const { error } = await supabase
+          .from('apostas')
+          .insert({
+            user_id: user.id,
+            prova_id: provaId,
+            participante_id: null, // NULL para apostas binárias (permitido após FIX-ALL-ISSUES.sql)
+            resposta_binaria: resposta,
+          });
+
+        if (error) throw error;
+
+        // Trigger animação de XP para novo voto
+        triggerXPAnimation();
+      }
+
+      await loadProvas();
+    } catch (error) {
+      console.error('Erro ao fazer aposta binária:', error);
+      alert('Erro ao fazer aposta. Tente novamente.');
+      await loadProvas();
+    } finally {
+      setApostando(null);
+    }
+  };
+
   const fazerAposta = async (provaId: string, participanteId: string) => {
     if (!user) return;
 
@@ -158,6 +206,9 @@ export default function Apostas() {
     setApostando(provaId);
     try {
       const isPalpiteParedao = prova?.tipo === 'palpite_paredao';
+      const isCustomMultiple = prova?.tipo_customizado && (prova?.max_escolhas || 1) > 1;
+      const isMultipleChoice = isPalpiteParedao || isCustomMultiple;
+      const maxEscolhas = isPalpiteParedao ? 3 : (prova?.max_escolhas || 1);
       const apostasAtuais = prova?.apostas || [];
 
       // Verificar se já votou nesse participante
@@ -211,8 +262,15 @@ export default function Apostas() {
         }
       } else {
         // Se não votou ainda
-        if (isPalpiteParedao) {
-          // Para palpite_paredao, permite até 3 votos (inserir novo)
+        if (isMultipleChoice) {
+          // Verificar se já atingiu o limite de votos
+          if (apostasAtuais.length >= maxEscolhas) {
+            alert(`Você já votou no máximo de ${maxEscolhas} ${maxEscolhas === 1 ? 'participante' : 'participantes'}. Remova um voto para adicionar outro.`);
+            setApostando(null);
+            return;
+          }
+
+          // Para múltiplas escolhas, permite até N votos (inserir novo)
           console.log('➕ Tentando adicionar novo voto');
           const { data, error } = await supabase
             .from('apostas')
@@ -369,6 +427,7 @@ export default function Apostas() {
         provas={provas}
         getParticipantesParaProva={getParticipantesParaProva}
         fazerAposta={fazerAposta}
+        fazerApostaBinaria={fazerApostaBinaria}
         apostando={apostando}
         getTipoProvaLabel={getTipoProvaLabel}
         getTipoProvaColor={getTipoProvaColor}

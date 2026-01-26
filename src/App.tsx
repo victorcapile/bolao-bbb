@@ -46,7 +46,7 @@ function App() {
             <FloatingTop3 />
             <LiderAnjoWeek />
             <FloatingNews />
-          <main className="container mx-auto px-4 py-6 max-w-7xl mt-24 md:mt-20">
+          <main className="container mx-auto px-4 py-6 max-w-7xl mt-28 md:mt-24">
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/registrar" element={<Registrar />} />

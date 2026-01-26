@@ -46,16 +46,58 @@ export default function NivelBadge({ nivel, xp, size = 'md', showXP = true, trig
     }
   }, [xp, triggerAnimation]);
 
-  // Cores por nível (quanto maior o nível, mais especial a cor)
+  // Cores únicas para cada nível
   const getNivelGradient = (nivel: number): string => {
-    if (nivel >= 50) return 'from-red-500 via-orange-500 to-yellow-500'; // Lendário
-    if (nivel >= 40) return 'from-purple-600 via-pink-500 to-red-500'; // Épico
-    if (nivel >= 30) return 'from-indigo-500 via-purple-500 to-pink-500'; // Mítico
-    if (nivel >= 20) return 'from-blue-500 via-cyan-500 to-teal-500'; // Diamante
-    if (nivel >= 15) return 'from-green-500 via-emerald-500 to-teal-500'; // Platina
-    if (nivel >= 10) return 'from-yellow-500 via-amber-500 to-orange-500'; // Ouro
-    if (nivel >= 5) return 'from-gray-400 via-gray-300 to-gray-400'; // Prata
-    return 'from-orange-600 via-amber-700 to-orange-600'; // Bronze
+    const colors = [
+      'from-orange-600 via-amber-700 to-orange-600',      // Nível 1
+      'from-amber-500 via-yellow-600 to-amber-500',       // Nível 2
+      'from-yellow-500 via-amber-400 to-yellow-500',      // Nível 3
+      'from-lime-500 via-green-400 to-lime-500',          // Nível 4
+      'from-green-500 via-emerald-400 to-green-500',      // Nível 5
+      'from-emerald-500 via-teal-400 to-emerald-500',     // Nível 6
+      'from-teal-500 via-cyan-400 to-teal-500',           // Nível 7
+      'from-cyan-500 via-sky-400 to-cyan-500',            // Nível 8
+      'from-sky-500 via-blue-400 to-sky-500',             // Nível 9
+      'from-blue-500 via-indigo-400 to-blue-500',         // Nível 10
+      'from-indigo-500 via-violet-400 to-indigo-500',     // Nível 11
+      'from-violet-500 via-purple-400 to-violet-500',     // Nível 12
+      'from-purple-500 via-fuchsia-400 to-purple-500',    // Nível 13
+      'from-fuchsia-500 via-pink-400 to-fuchsia-500',     // Nível 14
+      'from-pink-500 via-rose-400 to-pink-500',           // Nível 15
+      'from-rose-500 via-red-400 to-rose-500',            // Nível 16
+      'from-red-500 via-orange-400 to-red-500',           // Nível 17
+      'from-orange-500 via-amber-400 to-orange-500',      // Nível 18
+      'from-amber-400 via-yellow-500 to-amber-400',       // Nível 19
+      'from-yellow-400 via-lime-500 to-yellow-400',       // Nível 20
+      'from-lime-400 via-green-500 to-lime-400',          // Nível 21
+      'from-green-400 via-emerald-500 to-green-400',      // Nível 22
+      'from-emerald-400 via-teal-500 to-emerald-400',     // Nível 23
+      'from-teal-400 via-cyan-500 to-teal-400',           // Nível 24
+      'from-cyan-400 via-sky-500 to-cyan-400',            // Nível 25
+      'from-sky-400 via-blue-500 to-sky-400',             // Nível 26
+      'from-blue-400 via-indigo-500 to-blue-400',         // Nível 27
+      'from-indigo-400 via-violet-500 to-indigo-400',     // Nível 28
+      'from-violet-400 via-purple-500 to-violet-400',     // Nível 29
+      'from-purple-400 via-fuchsia-500 to-purple-400',    // Nível 30
+      'from-fuchsia-400 via-pink-500 to-fuchsia-400',     // Nível 31
+      'from-pink-400 via-rose-500 to-pink-400',           // Nível 32
+      'from-rose-400 via-red-500 to-rose-400',            // Nível 33
+      'from-red-400 via-orange-500 to-red-400',           // Nível 34
+      'from-orange-400 via-amber-500 to-orange-400',      // Nível 35
+      'from-yellow-300 via-amber-500 to-yellow-300',      // Nível 36
+      'from-lime-300 via-green-500 to-lime-300',          // Nível 37
+      'from-green-300 via-emerald-500 to-green-300',      // Nível 38
+      'from-emerald-300 via-teal-500 to-emerald-300',     // Nível 39
+      'from-purple-600 via-pink-500 to-red-500',          // Nível 40+
+    ];
+
+    // Para níveis acima de 40, usar cores especiais
+    if (nivel >= 50) return 'from-red-500 via-orange-500 to-yellow-500';
+    if (nivel >= 40) return colors[39];
+
+    // Para níveis 1-39, usar a cor correspondente
+    const index = Math.min(Math.max(nivel - 1, 0), colors.length - 1);
+    return colors[index];
   };
 
   // Tamanhos escalados por nível

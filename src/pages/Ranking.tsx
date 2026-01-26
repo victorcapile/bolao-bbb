@@ -321,31 +321,6 @@ export default function Ranking() {
         </div>
       )}
 
-      {user && ranking.length > 0 && (
-        <div className="glass rounded-2xl p-6 mt-8">
-          <h3 className="text-2xl font-bold text-white mb-4">Sua posição no ranking</h3>
-          {(() => {
-            const myPosition = ranking.findIndex((r) => r.id === user.id);
-            if (myPosition === -1) {
-              return (
-                <p className="text-white/70">Você ainda não tem pontos. Faça suas apostas!</p>
-              );
-            }
-            const myData = ranking[myPosition];
-            return (
-              <div className="flex items-center gap-6 bg-white/5 rounded-xl p-4">
-                <div className="text-4xl font-bold text-white">{getPosicao(myPosition)}º</div>
-                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <div className="text-white/60 text-sm">Pontos</div>
-                    <div className="text-white font-bold text-2xl">{myData.pontos_totais}</div>
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
-        </div>
-      )}
     </div>
   );
 }

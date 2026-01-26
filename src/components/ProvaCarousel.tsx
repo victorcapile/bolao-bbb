@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import ProvaCard from './ProvaCard';
+import ApostaBinariaCard from './ApostaBinariaCard';
 import type { Participante, Prova, Aposta } from '../lib/supabase';
 
 interface ProvaComDetalhes extends Prova {
@@ -14,6 +15,7 @@ interface ProvaCarouselProps {
   provas: ProvaComDetalhes[];
   getParticipantesParaProva: (prova: ProvaComDetalhes) => Participante[];
   fazerAposta: (provaId: string, participanteId: string) => void;
+  fazerApostaBinaria?: (provaId: string, resposta: 'sim' | 'nao') => void;
   apostando: string | null;
   getTipoProvaLabel: (tipo: string) => string;
   getTipoProvaColor: (tipo: string) => string;
@@ -24,6 +26,7 @@ export default function ProvaCarousel({
   provas,
   getParticipantesParaProva,
   fazerAposta,
+  fazerApostaBinaria,
   apostando,
   getTipoProvaLabel,
   getTipoProvaColor,
@@ -130,25 +133,45 @@ export default function ProvaCarousel({
                 'fade-in'
               }`}
           >
-            <ProvaCard
-              tipo={currentProva.tipo}
-              descricao={currentProva.descricao}
-              dataProva={currentProva.data_prova}
-              fechada={currentProva.fechada}
-              aposta={currentProva.aposta}
-              apostas={currentProva.apostas}
-              participanteApostado={currentProva.participante_apostado}
-              participantesDisponiveis={getParticipantesParaProva(currentProva)}
-              onVotar={(participanteId) => fazerAposta(currentProva.id, participanteId)}
-              apostando={apostando === currentProva.id}
-              getTipoProvaLabel={getTipoProvaLabel}
-              getTipoProvaColor={getTipoProvaColor}
-              formatDate={formatDate}
-              tipo_customizado={currentProva.tipo_customizado}
-              titulo_customizado={currentProva.titulo_customizado}
-              max_escolhas={currentProva.max_escolhas}
-              votacao_aberta={currentProva.votacao_aberta}
-            />
+            {currentProva.is_aposta_binaria ? (
+              <ApostaBinariaCard
+                pergunta={currentProva.pergunta || ''}
+                dataProva={currentProva.data_prova}
+                fechada={currentProva.fechada}
+                aposta={currentProva.aposta ? {
+                  resposta_binaria: currentProva.aposta.resposta_binaria || '',
+                  pontos: currentProva.aposta.pontos
+                } : undefined}
+                oddsSim={currentProva.odds_sim || 1}
+                oddsNao={currentProva.odds_nao || 1}
+                pontosBase={currentProva.pontos_base || 5}
+                respostaCorreta={currentProva.resposta_correta}
+                onVotar={(resposta) => fazerApostaBinaria?.(currentProva.id, resposta)}
+                apostando={apostando === currentProva.id}
+                formatDate={formatDate}
+                votacao_aberta={currentProva.votacao_aberta}
+              />
+            ) : (
+              <ProvaCard
+                tipo={currentProva.tipo}
+                descricao={currentProva.descricao}
+                dataProva={currentProva.data_prova}
+                fechada={currentProva.fechada}
+                aposta={currentProva.aposta}
+                apostas={currentProva.apostas}
+                participanteApostado={currentProva.participante_apostado}
+                participantesDisponiveis={getParticipantesParaProva(currentProva)}
+                onVotar={(participanteId) => fazerAposta(currentProva.id, participanteId)}
+                apostando={apostando === currentProva.id}
+                getTipoProvaLabel={getTipoProvaLabel}
+                getTipoProvaColor={getTipoProvaColor}
+                formatDate={formatDate}
+                tipo_customizado={currentProva.tipo_customizado}
+                titulo_customizado={currentProva.titulo_customizado}
+                max_escolhas={currentProva.max_escolhas}
+                votacao_aberta={currentProva.votacao_aberta}
+              />
+            )}
           </div>
         </div>
 
