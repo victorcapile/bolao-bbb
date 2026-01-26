@@ -79,15 +79,29 @@ export default function ApostaBinariaCard({
         <>
           {/* Sua aposta */}
           {aposta ? (
-            <div className="bg-gradient-to-br from-purple-500/20 to-fuchsia-500/20 rounded-xl p-4 border-2 border-purple-400/40 mb-4 shadow-lg">
+            <div className={`rounded-xl p-4 border-2 mb-4 shadow-lg ${
+              aposta.resposta_binaria === 'sim'
+                ? 'bg-gradient-to-br from-green-500/20 to-emerald-500/20 border-green-400/40'
+                : 'bg-gradient-to-br from-red-500/20 to-rose-500/20 border-red-400/40'
+            }`}>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-purple-200 text-xs lg:text-sm font-bold flex items-center gap-2">
-                  <span className="w-5 h-5 bg-purple-500/30 rounded-full flex items-center justify-center">✓</span>
+                <span className={`text-xs lg:text-sm font-bold flex items-center gap-2 ${
+                  aposta.resposta_binaria === 'sim' ? 'text-green-200' : 'text-red-200'
+                }`}>
+                  <span className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                    aposta.resposta_binaria === 'sim' ? 'bg-green-500/30' : 'bg-red-500/30'
+                  }`}>
+                    {aposta.resposta_binaria === 'sim' ? '✓' : '✕'}
+                  </span>
                   Sua Aposta
                 </span>
-                <span className="text-purple-300 text-[10px] italic">Clique para mudar</span>
+                <span className={`text-[10px] italic ${
+                  aposta.resposta_binaria === 'sim' ? 'text-green-300' : 'text-red-300'
+                }`}>Clique para mudar</span>
               </div>
-              <div className="bg-white/10 rounded-lg p-3 text-center">
+              <div className={`rounded-lg p-3 text-center ${
+                aposta.resposta_binaria === 'sim' ? 'bg-green-500/20' : 'bg-red-500/20'
+              }`}>
                 <p className="text-white font-extrabold text-2xl lg:text-3xl uppercase tracking-wide">
                   {aposta.resposta_binaria}
                 </p>
