@@ -752,8 +752,8 @@ export default function Admin() {
                           <p className="text-orange-300 text-xs">Aposta Binária (Sim/Não)</p>
                           <p className="text-white/80 text-sm mt-1">{prova.pergunta}</p>
                           <div className="flex gap-3 mt-2 text-xs">
-                            <span className="text-green-300">SIM: {prova.pontos_base}pts × {prova.odds_sim} = {Math.round(prova.pontos_base * prova.odds_sim)}pts</span>
-                            <span className="text-red-300">NÃO: {prova.pontos_base}pts × {prova.odds_nao} = {Math.round(prova.pontos_base * prova.odds_nao)}pts</span>
+                            <span className="text-green-300">SIM: {prova.pontos_base || 5}pts × {prova.odds_sim || 1} = {Math.round((prova.pontos_base || 5) * (prova.odds_sim || 1))}pts</span>
+                            <span className="text-red-300">NÃO: {prova.pontos_base || 5}pts × {prova.odds_nao || 1} = {Math.round((prova.pontos_base || 5) * (prova.odds_nao || 1))}pts</span>
                           </div>
                         </>
                       )}

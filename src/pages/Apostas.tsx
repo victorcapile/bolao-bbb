@@ -304,7 +304,8 @@ export default function Apostas() {
                   prova_id: data.prova_id,
                   participante_id: data.participante_id,
                   pontos: data.pontos,
-                  created_at: data.created_at
+                  created_at: data.created_at,
+                  resposta_binaria: data.resposta_binaria || null
                 };
                 console.log('🔄 Adicionando ao estado:', {
                   antes: (p.apostas || []).length,

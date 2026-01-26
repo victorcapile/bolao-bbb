@@ -18,7 +18,6 @@ interface ApostaBinariaCardProps {
 
 export default function ApostaBinariaCard({
   pergunta,
-  dataProva,
   fechada,
   aposta,
   oddsSim,
@@ -27,7 +26,6 @@ export default function ApostaBinariaCard({
   respostaCorreta,
   onVotar,
   apostando,
-  formatDate,
   votacao_aberta = true
 }: ApostaBinariaCardProps) {
   const pontosSim = Math.round(pontosBase * oddsSim);
