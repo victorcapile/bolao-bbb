@@ -99,6 +99,19 @@ export interface FeedAtividade {
 
 export type TipoReacao = 'like' | 'fire' | 'thinking' | 'skull' | 'clown';
 
+export interface Notificacao {
+  id: string;
+  user_id: string;
+  tipo: 'pontos_ganhos' | 'nova_prova' | 'nivel_up' | 'badge' | 'outro';
+  titulo: string;
+  mensagem: string;
+  lida: boolean;
+  prova_id: string | null;
+  pontos: number | null;
+  metadata: any;
+  created_at: string;
+}
+
 export interface ReacaoVoto {
   id: string;
   aposta_id: string;

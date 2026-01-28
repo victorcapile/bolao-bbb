@@ -9,7 +9,7 @@ import PrivateRoute from './components/PrivateRoute';
 import Login from './pages/Login';
 import Registrar from './pages/Registrar';
 import Apostas from './pages/Apostas';
-import Ranking from './pages/Ranking';
+import Ranking from './pages/RankingNew';
 import Amigos from './pages/Amigos';
 import Feed from './pages/Feed';
 import Graph from './pages/Graph';

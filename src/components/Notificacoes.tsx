@@ -180,29 +180,46 @@ export default function Notificacoes() {
                     >
                       <div className="flex gap-3">
                         <div className="shrink-0">
-                          <div className={`w-9 h-9 rounded-full flex items-center justify-center ${
-                            notif.tipo === 'comentario'
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl ${
+                            notif.tipo === 'pontos_ganhos'
+                              ? 'bg-green-500/20 text-green-300'
+                              : notif.tipo === 'nivel_up'
                               ? 'bg-purple-500/20 text-purple-300'
+                              : notif.tipo === 'nova_prova'
+                              ? 'bg-orange-500/20 text-orange-300'
                               : 'bg-pink-500/20 text-pink-300'
                           }`}>
-                            {notif.tipo === 'comentario' ? '💬' : '❤️'}
+                            {notif.tipo === 'pontos_ganhos' ? '🎉' :
+                             notif.tipo === 'nivel_up' ? '🎊' :
+                             notif.tipo === 'nova_prova' ? '🎯' :
+                             notif.tipo === 'badge' ? '🏆' : '✨'}
                           </div>
                         </div>
 
                         <div className="flex-1 min-w-0">
-                          <p className={`text-sm mb-1 ${
-                            notif.lida ? 'text-white/70' : 'text-white font-medium'
+                          <p className={`text-sm font-bold mb-0.5 ${
+                            notif.lida ? 'text-white/70' : 'text-white'
+                          }`}>
+                            {notif.titulo}
+                          </p>
+                          <p className={`text-xs mb-1 ${
+                            notif.lida ? 'text-white/50' : 'text-white/70'
                           }`}>
                             {notif.mensagem}
                           </p>
-                          <p className="text-white/40 text-xs">
+                          {notif.pontos && notif.pontos > 0 && (
+                            <div className="inline-flex items-center gap-1 bg-green-500/20 text-green-300 px-2 py-0.5 rounded-full text-xs font-bold mt-1">
+                              <span>+{notif.pontos} pts</span>
+                            </div>
+                          )}
+                          <p className="text-white/30 text-xs mt-1">
                             {getTempoDecorrido(notif.created_at)}
                           </p>
                         </div>
 
                         {!notif.lida && (
                           <div className="shrink-0">
-                            <div className="w-2 h-2 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg shadow-purple-500/50" />
+                            <div className="w-2 h-2 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 shadow-lg shadow-green-500/50 animate-pulse" />
                           </div>
                         )}
                       </div>
