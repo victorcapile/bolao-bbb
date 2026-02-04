@@ -4,6 +4,7 @@ import type { RankingEntry, Participante } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import StreakBadge from '../components/StreakBadge';
 import NivelBadge from '../components/NivelBadge';
+import Top3UsersList from '../components/Top3UsersListClean';
 
 interface VotoTop3 {
   id: string;
@@ -245,81 +246,7 @@ export default function Ranking() {
         </div>
       )}
 
-      {/* Top 3 dos Participantes */}
-      {votosTop3.length > 0 && (
-        <div className="glass rounded-2xl p-6 mt-8">
-          <h3 className="text-2xl font-bold bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent mb-4">
-            🏆 Top 3 dos Usuários
-          </h3>
-          <p className="text-white/60 text-sm mb-6">
-            Veja quem cada jogador acha que vai ganhar o BBB
-          </p>
-          <div className="space-y-4">
-            {votosTop3.map((voto) => {
-              const isMyVote = voto.user_id === user?.id;
-              return (
-                <div
-                  key={voto.id}
-                  className={`bg-white/5 rounded-xl p-4 border ${
-                    isMyVote
-                      ? 'border-purple-500/50 ring-2 ring-purple-500/30'
-                      : 'border-white/10'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-white font-bold">@{voto.username}</span>
-                      {isMyVote && (
-                        <span className="px-2 py-0.5 rounded-full bg-purple-500/30 text-purple-200 text-xs font-medium">
-                          Você
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-white/40 text-xs">
-                      {new Date(voto.updated_at).toLocaleDateString('pt-BR')}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {/* 1º Lugar */}
-                    <div className="flex items-center gap-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
-                      <span className="text-2xl">🥇</span>
-                      <div className="flex-1">
-                        <div className="text-yellow-200 text-xs font-medium">1º Lugar</div>
-                        <div className="text-white font-bold text-sm">
-                          {voto.primeiro?.nome || 'N/A'}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 2º Lugar */}
-                    <div className="flex items-center gap-3 bg-gray-400/10 border border-gray-400/30 rounded-lg p-3">
-                      <span className="text-2xl">🥈</span>
-                      <div className="flex-1">
-                        <div className="text-gray-200 text-xs font-medium">2º Lugar</div>
-                        <div className="text-white font-bold text-sm">
-                          {voto.segundo?.nome || 'N/A'}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 3º Lugar */}
-                    <div className="flex items-center gap-3 bg-orange-600/10 border border-orange-600/30 rounded-lg p-3">
-                      <span className="text-2xl">🥉</span>
-                      <div className="flex-1">
-                        <div className="text-orange-200 text-xs font-medium">3º Lugar</div>
-                        <div className="text-white font-bold text-sm">
-                          {voto.terceiro?.nome || 'N/A'}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      <Top3UsersList votosTop3={votosTop3} currentUserId={user?.id} />
 
     </div>
   );

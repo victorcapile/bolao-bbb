@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import type { Prova, Aposta, ReacaoVoto, TipoReacao } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import Top3UsersList from '../components/Top3UsersListClean';
 
 interface ApostaComDetalhes extends Aposta {
   username: string;
@@ -23,6 +24,7 @@ export default function Amigos() {
   const [provasAtivas, setProvasAtivas] = useState<Prova[]>([]);
   const [loading, setLoading] = useState(true);
   const [reacoes, setReacoes] = useState<ReacaoVoto[]>([]);
+  const [votosTop3ByUser, setVotosTop3ByUser] = useState<Record<string, { primeiro?: { nome?: string; foto_url?: string | null }; segundo?: { nome?: string; foto_url?: string | null }; terceiro?: { nome?: string; foto_url?: string | null }; updated_at?: string }>>({});
   const { user } = useAuth();
 
   useEffect(() => {
@@ -33,7 +35,58 @@ export default function Amigos() {
     if (apostasAtivas.length > 0) {
       loadReacoes();
     }
+    if (apostasAtivas.length > 0) {
+      loadTop3Usuarios();
+    }
   }, [apostasAtivas]);
+
+  const loadTop3Usuarios = async () => {
+    try {
+      const userIds = [...new Set(apostasAtivas.map(a => a.user_id))];
+      if (userIds.length === 0) {
+        setVotosTop3ByUser({});
+        return;
+      }
+
+      const { data: votos, error: votosError } = await supabase
+        .from('votos_top3')
+        .select('*')
+        .in('user_id', userIds);
+
+      if (votosError) throw votosError;
+
+      if (!votos || votos.length === 0) {
+        setVotosTop3ByUser({});
+        return;
+      }
+
+      const participanteIds = [
+        ...new Set(votos.flatMap(v => [v.primeiro_lugar_id, v.segundo_lugar_id, v.terceiro_lugar_id]).filter(Boolean))
+      ] as string[];
+
+      const { data: participantes } = await supabase
+        .from('participantes')
+        .select('id, nome, foto_url')
+        .in('id', participanteIds);
+
+      const participantesMap: Record<string, { nome?: string; foto_url?: string | null }> = {};
+      participantes?.forEach(p => { if (p.id) participantesMap[p.id] = { nome: p.nome, foto_url: p.foto_url }; });
+
+      const map: Record<string, { primeiro?: { nome?: string; foto_url?: string | null }; segundo?: { nome?: string; foto_url?: string | null }; terceiro?: { nome?: string; foto_url?: string | null }; updated_at?: string }> = {};
+      votos.forEach((v: any) => {
+        map[v.user_id] = {
+          primeiro: participantesMap[v.primeiro_lugar_id] || undefined,
+          segundo: participantesMap[v.segundo_lugar_id] || undefined,
+          terceiro: participantesMap[v.terceiro_lugar_id] || undefined,
+          updated_at: v.updated_at
+        };
+      });
+
+      setVotosTop3ByUser(map);
+    } catch (error) {
+      console.error('Erro ao carregar top3 dos usuários:', error);
+    }
+  };
 
   const loadApostasAtivas = async () => {
     try {
@@ -118,6 +171,17 @@ export default function Amigos() {
       console.error('Erro ao carregar reações:', error);
     }
   };
+
+  // montar array para o componente Top3 standalone
+  const votosTop3Array = Object.entries(votosTop3ByUser).map(([user_id, v]) => ({
+    id: user_id,
+    user_id,
+    username: apostasAtivas.find(a => a.user_id === user_id)?.username || user_id,
+    primeiro: v.primeiro ? { id: '', nome: v.primeiro.nome } : undefined,
+    segundo: v.segundo ? { id: '', nome: v.segundo.nome } : undefined,
+    terceiro: v.terceiro ? { id: '', nome: v.terceiro.nome } : undefined,
+    updated_at: v.updated_at
+  }));
 
   const toggleReacao = async (apostaId: string, tipo: TipoReacao) => {
     if (!user) return;
@@ -345,6 +409,11 @@ export default function Amigos() {
           })}
         </div>
       )}
+
+      {/* Top3 standalone ao final da página de Amigos */}
+      <div className="mt-6">
+        <Top3UsersList votosTop3={votosTop3Array} currentUserId={user?.id} />
+      </div>
     </div>
   );
 }

@@ -2,27 +2,28 @@ import { useEffect, useState } from 'react';
 
 interface NivelBadgeProps {
   nivel: number;
-  xp: number;
-  size?: 'sm' | 'md' | 'lg';
+  xp?: number;
+  size?: 'xs' | 'sm' | 'md' | 'lg';
   showXP?: boolean;
   triggerAnimation?: boolean;
 }
 
 export default function NivelBadge({ nivel, xp, size = 'md', showXP = true, triggerAnimation = false }: NivelBadgeProps) {
   const [isAnimating, setIsAnimating] = useState(false);
-  const [displayXP, setDisplayXP] = useState(xp);
+  const [displayXP, setDisplayXP] = useState(xp ?? 0);
 
   // Calcular XP necessário para próximo nível
-  const xpParaProximo = nivel * 100;
+  const xpParaProximo = Math.max(1, nivel * 100);
   const porcentagem = (displayXP / xpParaProximo) * 100;
 
   // Trigger animation quando XP mudar
   useEffect(() => {
-    if (triggerAnimation && xp > displayXP) {
+    const targetXP = xp ?? 0;
+    if (triggerAnimation && targetXP > displayXP) {
       setIsAnimating(true);
 
       // Animar o número de XP subindo
-      const diff = xp - displayXP;
+      const diff = targetXP - displayXP;
       const duration = 800;
       const steps = 20;
       const increment = diff / steps;
@@ -32,17 +33,17 @@ export default function NivelBadge({ nivel, xp, size = 'md', showXP = true, trig
       const interval = setInterval(() => {
         currentStep++;
         if (currentStep >= steps) {
-          setDisplayXP(xp);
+          setDisplayXP(targetXP);
           clearInterval(interval);
           setTimeout(() => setIsAnimating(false), 500);
         } else {
-          setDisplayXP(prev => Math.min(prev + increment, xp));
+          setDisplayXP(prev => Math.min(prev + increment, targetXP));
         }
       }, stepDuration);
 
       return () => clearInterval(interval);
     } else {
-      setDisplayXP(xp);
+      setDisplayXP(targetXP);
     }
   }, [xp, triggerAnimation]);
 
@@ -104,6 +105,11 @@ export default function NivelBadge({ nivel, xp, size = 'md', showXP = true, trig
   const getSizeClasses = (baseSize: string, nivel: number): string => {
     const scale = nivel >= 20 ? 1.3 : nivel >= 10 ? 1.15 : 1;
     const sizeMap = {
+      xs: {
+        1: 'text-[10px] px-1.5 py-0.5',
+        1.15: 'text-xs px-2 py-0.5',
+        1.3: 'text-sm px-2.5 py-0.5'
+      },
       sm: {
         1: 'text-xs px-2 py-0.5',
         1.15: 'text-sm px-2.5 py-0.5',
@@ -121,7 +127,9 @@ export default function NivelBadge({ nivel, xp, size = 'md', showXP = true, trig
       }
     };
 
-    return sizeMap[baseSize as keyof typeof sizeMap][scale];
+    // Fallback para caso baseSize seja inválido
+    const key = (baseSize as keyof typeof sizeMap) in sizeMap ? (baseSize as keyof typeof sizeMap) : 'md';
+    return (sizeMap as any)[key][scale];
   };
 
   const badgeClass = getSizeClasses(size, nivel);

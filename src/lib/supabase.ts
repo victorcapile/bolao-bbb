@@ -130,7 +130,7 @@ export interface ComentarioAposta {
   avatar_url?: string;
 }
 
-export interface Notificacao {
+export interface NotificacaoSimples {
   id: string;
   user_id: string;
   tipo: 'comentario' | 'reacao';

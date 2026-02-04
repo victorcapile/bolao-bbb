@@ -11,7 +11,6 @@ import Registrar from './pages/Registrar';
 import Apostas from './pages/Apostas';
 import Ranking from './pages/RankingNew';
 import Amigos from './pages/Amigos';
-import Feed from './pages/Feed';
 import Graph from './pages/Graph';
 import Admin from './pages/Admin';
 import { useEffect } from 'react';
@@ -74,14 +73,7 @@ function App() {
                   </PrivateRoute>
                 }
               />
-              <Route
-                path="/feed"
-                element={
-                  <PrivateRoute>
-                    <Feed />
-                  </PrivateRoute>
-                }
-              />
+              {/* Feed route removed per request (tab hidden). */}
               <Route
                 path="/graph"
                 element={
