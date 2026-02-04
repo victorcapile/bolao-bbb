@@ -10,124 +10,133 @@ export default function RankingNew() {
   const { user } = useAuth();
 
   useEffect(() => {
-    loadRanking();
-  }, []);
-
-  const loadRanking = async () => {
-    try {
+    async function fetchRanking() {
       const { data, error } = await supabase
         .from('ranking')
         .select('*')
-        .order('pontos_totais', { ascending: false })
-        .limit(20);
-
-      if (error) throw error;
-      setRanking(data || []);
-    } catch (error) {
-      console.error('Erro ao carregar ranking:', error);
-    } finally {
+        .order('pontos_totais', { ascending: false });
+      if (!error && data) {
+        setRanking(data);
+      }
       setLoading(false);
     }
-  };
+    fetchRanking();
+  }, []);
 
-  const maxPontos = ranking[0]?.pontos_totais || 1;
-
-  const getMedalha = (posicao: number) => {
-    if (posicao === 1) return { emoji: '🥇', cor: 'from-yellow-400 to-yellow-600', shadow: 'shadow-yellow-500/50' };
-    if (posicao === 2) return { emoji: '🥈', cor: 'from-gray-300 to-gray-400', shadow: 'shadow-gray-400/50' };
-    if (posicao === 3) return { emoji: '🥉', cor: 'from-orange-400 to-orange-600', shadow: 'shadow-orange-500/50' };
+  // Funções auxiliares (mock)
+  function getMedalha(posicao: number) {
+    if (posicao === 1) return { emoji: '🥇' };
+    if (posicao === 2) return { emoji: '🥈' };
+    if (posicao === 3) return { emoji: '🥉' };
     return null;
-  };
-
-  const getCorBarra = (posicao: number) => {
-    if (posicao === 1) return 'from-yellow-400 via-yellow-500 to-yellow-600';
-    if (posicao === 2) return 'from-gray-400 via-gray-500 to-gray-600';
-    if (posicao === 3) return 'from-orange-400 via-orange-500 to-orange-600';
-    return 'from-purple-500 via-purple-600 to-pink-600';
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-white/60">Carregando ranking...</p>
-        </div>
-      </div>
-    );
+  }
+  function getCorBarra(posicao: number) {
+    if (posicao === 1) return 'from-yellow-400 to-yellow-700';
+    if (posicao === 2) return 'from-slate-400 to-slate-700';
+    if (posicao === 3) return 'from-orange-400 to-orange-900';
+    return 'from-purple-400 to-pink-700';
   }
 
-  return (
-    <div className="max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center gap-3 mb-3">
-          <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-yellow-400 via-orange-500 to-pink-500 bg-clip-text text-transparent">
-            Ranking
-          </h1>
-        </div>
-        <p className="text-white/60 text-sm md:text-base">
-          Acompanhe quem está dominando o bolão!
-        </p>
-        <br></br>
-      </div>
+  const maxPontos = ranking.length > 0 ? ranking[0].pontos_totais : 1;
 
+  return (
+    <div className="ranking-page">
       {/* Pódio (Top 3) */}
       {ranking.length >= 3 && (
-        <div className="mb-20">
-          <div className="max-w-5xl mx-auto flex items-end justify-center gap-4 px-4 sm:px-6">
-            {/* 2º Lugar (esquerda) - destaque maior */}
-            <div className="w-1/4 flex flex-col items-center transform translate-y-4 md:translate-y-6">
-              <div className="relative w-full bg-gradient-to-b from-slate-800 to-slate-700 rounded-2xl p-5 border border-slate-600/40 shadow-2xl flex flex-col items-center">
-                <div className="absolute -top-5 left-4 bg-gradient-to-r from-gray-100 to-gray-300 text-gray-900 px-4 py-1 rounded-full text-sm md:text-base font-bold shadow">🥈 2º</div>
-                <div className="mb-2 text-3xl md:text-4xl">🥈</div>
-                {ranking[1].avatar_url ? (
-                  <img src={ranking[1].avatar_url} alt={ranking[1].username} className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-slate-600 object-cover shadow-2xl ring-2 ring-white/5" />
-                ) : (
-                  <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-2xl md:text-3xl border-4 border-slate-600 shadow-2xl ring-2 ring-white/5">
-                    {ranking[1].username.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <h3 className="text-white font-bold text-sm md:text-base mt-3 truncate">@{ranking[1].username}</h3>
-                <div className="mt-3"><NivelBadge nivel={ranking[1].nivel} size="md" /></div>
-                <div className="mt-4 bg-white/6 text-white/90 px-4 py-1.5 rounded-full text-base font-extrabold">{ranking[1].pontos_totais} pts</div>
+        <div className="mb-20 mt-10">
+          {/* Mobile-friendly simplified podium (only on small screens) */}
+          <div className="md:hidden max-w-md mx-auto px-4 sm:px-6 space-y-4">
+            <div className="relative bg-gradient-to-b from-yellow-600 to-yellow-700 rounded-2xl p-4 border-2 border-yellow-400 shadow-lg flex items-center gap-4">
+              <div className="text-3xl">👑</div>
+              <div>
+                <div className="text-white font-extrabold text-lg">@{ranking[0].username}</div>
+                <div className="text-yellow-100 font-black text-xl">{ranking[0].pontos_totais} pts</div>
+                <div className="mt-1"><NivelBadge nivel={ranking[0].nivel} size="sm" /></div>
               </div>
-            </div>
-
-            {/* 1º Lugar (centro maior) */}
-            <div className="w-1/3 flex flex-col items-center -translate-y-4 md:-translate-y-6">
-              <div className="relative w-full bg-gradient-to-b from-yellow-600 to-yellow-700 rounded-3xl p-6 border-2 border-yellow-400 shadow-2xl flex flex-col items-center">
-                <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-yellow-500 text-yellow-900 px-4 py-1 rounded-full text-sm md:text-base font-extrabold shadow-lg">👑 CAMPEÃO</div>
-                <div className="mb-2 text-5xl md:text-6xl animate-bounce">🥇</div>
+              <div className="ml-auto">
                 {ranking[0].avatar_url ? (
-                  <img src={ranking[0].avatar_url} alt={ranking[0].username} className="w-28 h-28 md:w-32 md:h-32 rounded-full border-4 border-yellow-400 object-cover shadow-2xl ring-4 ring-yellow-400/30" />
+                  <img src={ranking[0].avatar_url} alt={ranking[0].username} className="w-16 h-16 rounded-full border-2 border-yellow-400 object-cover" />
                 ) : (
-                  <div className="w-28 h-28 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-3xl border-4 border-yellow-400 shadow-2xl ring-4 ring-yellow-400/30">
-                    {ranking[0].username.charAt(0).toUpperCase()}
-                  </div>
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xl border-2 border-yellow-400">{ranking[0].username.charAt(0).toUpperCase()}</div>
                 )}
-                <h3 className="text-white font-extrabold text-base md:text-lg mt-3 truncate">@{ranking[0].username}</h3>
-                <div className="mt-3"><NivelBadge nivel={ranking[0].nivel} size="md" /></div>
-                <div className="mt-4 bg-yellow-900/60 text-yellow-100 px-5 py-2 rounded-full text-2xl md:text-3xl font-black">{ranking[0].pontos_totais}</div>
-                <div className="text-yellow-200 text-xs mt-1">pontos</div>
               </div>
             </div>
 
-            {/* 3º Lugar (direita) */}
-            <div className="w-1/4 flex flex-col items-center transform translate-y-8 md:translate-y-10">
-              <div className="relative w-full bg-gradient-to-b from-orange-800 to-orange-900 rounded-2xl p-4 border border-orange-700/30 shadow-md flex flex-col items-center">
-                <div className="absolute -top-4 right-4 bg-gradient-to-r from-orange-200 to-orange-300 text-orange-900 px-3 py-1 rounded-full text-sm font-bold shadow-sm">🥉 3º</div>
-                <div className="mb-2 text-3xl">🥉</div>
-                {ranking[2].avatar_url ? (
-                  <img src={ranking[2].avatar_url} alt={ranking[2].username} className="w-16 h-16 rounded-full border-4 border-orange-500 object-cover shadow-xl" />
-                ) : (
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xl border-4 border-orange-500 shadow-xl">
-                    {ranking[2].username.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <h3 className="text-white font-bold text-sm mt-3 truncate">@{ranking[2].username}</h3>
-                <div className="mt-2"><NivelBadge nivel={ranking[2].nivel} size="sm" /></div>
-                <div className="mt-3 bg-white/5 text-white/80 px-3 py-1 rounded-full text-sm font-bold">{ranking[2].pontos_totais} pts</div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-slate-800 rounded-xl p-3 flex items-center gap-3">
+                <div className="text-2xl">🥈</div>
+                <div>
+                  <div className="text-white font-bold">@{ranking[1].username}</div>
+                  <div className="text-sm text-white/80">{ranking[1].pontos_totais} pts</div>
+                </div>
+                <div className="ml-auto">
+                  {ranking[1].avatar_url ? (
+                    <img src={ranking[1].avatar_url} alt={ranking[1].username} className="w-10 h-10 rounded-full border-2 border-slate-600 object-cover" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold">{ranking[1].username.charAt(0).toUpperCase()}</div>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-orange-900 rounded-xl p-3 flex items-center gap-3">
+                <div className="text-2xl">🥉</div>
+                <div>
+                  <div className="text-white font-bold">@{ranking[2].username}</div>
+                  <div className="text-sm text-white/80">{ranking[2].pontos_totais} pts</div>
+                </div>
+                <div className="ml-auto">
+                  {ranking[2].avatar_url ? (
+                    <img src={ranking[2].avatar_url} alt={ranking[2].username} className="w-10 h-10 rounded-full border-2 border-orange-500 object-cover" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold">{ranking[2].username.charAt(0).toUpperCase()}</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop / md+ podium (kept as-is) */}
+          <div className="hidden md:block">
+            <div className="max-w-5xl mx-auto grid grid-cols-3 items-end gap-4 px-4 sm:px-6">
+              {/* 2º Lugar (left on md) */}
+              <div className="flex justify-center md:translate-y-4">
+                <div className="relative w-full md:w-[260px] bg-gradient-to-b from-slate-800 to-slate-700 rounded-2xl p-5 border border-slate-600/40 shadow-2xl flex flex-col items-center">
+                  <div className="absolute -top-5 left-4 bg-gradient-to-r from-gray-100 to-gray-300 text-gray-900 px-4 py-1 rounded-full text-sm md:text-base font-bold shadow">🥈 2º</div>
+                  <div className="mb-2 text-2xl md:text-3xl">🥈</div>
+                  {/* Foto removida do 2º lugar */}
+                  <h3 className="text-white font-bold text-sm md:text-base mt-2 truncate">@{ranking[1].username}</h3>
+                  <div className="mt-2"><NivelBadge nivel={ranking[1].nivel} size="md" /></div>
+                  <div className="mt-3 bg-white/6 text-white/90 px-3 py-1 rounded-full text-sm md:text-base font-extrabold">{ranking[1].pontos_totais} pts</div>
+                </div>
+              </div>
+
+              {/* 1º Lugar (center) */}
+              <div className="flex justify-center md:-translate-y-6">
+                <div className="relative w-full md:w-[360px] bg-gradient-to-b from-yellow-600 to-yellow-700 rounded-3xl p-6 border-2 border-yellow-400 shadow-2xl flex flex-col items-center">
+                  <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-yellow-500 text-yellow-900 px-4 py-1 rounded-full text-sm md:text-base font-extrabold shadow-lg">👑 CAMPEÃO</div>
+                  <div className="mb-2 text-4xl md:text-6xl animate-bounce">🥇</div>
+                  {ranking[0].avatar_url ? (
+                    <img src={ranking[0].avatar_url} alt={ranking[0].username} className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-yellow-400 object-cover shadow-2xl ring-4 ring-yellow-400/30" />
+                  ) : (
+                    <div className="w-28 h-28 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-3xl border-4 border-yellow-400 shadow-2xl ring-4 ring-yellow-400/30">{ranking[0].username.charAt(0).toUpperCase()}</div>
+                  )}
+                  <h3 className="text-white font-extrabold text-base md:text-lg mt-2 truncate">@{ranking[0].username}</h3>
+                  <div className="mt-2"><NivelBadge nivel={ranking[0].nivel} size="md" /></div>
+                  <div className="mt-3 bg-yellow-900/60 text-yellow-100 px-4 py-2 rounded-full text-xl md:text-3xl font-black">{ranking[0].pontos_totais}</div>
+                  <div className="text-yellow-200 text-xs mt-1">pontos</div>
+                </div>
+              </div>
+
+              {/* 3º Lugar (right on md) */}
+              <div className="flex justify-center md:translate-y-6">
+                <div className="relative w-full md:w-[220px] bg-gradient-to-b from-orange-800 to-orange-900 rounded-2xl p-4 border border-orange-700/30 shadow-md flex flex-col items-center">
+                  <div className="absolute -top-4 right-4 bg-gradient-to-r from-orange-200 to-orange-300 text-orange-900 px-3 py-1 rounded-full text-sm font-bold shadow-sm">🥉 3º</div>
+                  <div className="mb-2 text-2xl md:text-3xl">🥉</div>
+                  {/* Foto removida do 3º lugar */}
+                  <h3 className="text-white font-bold text-sm mt-3 truncate">@{ranking[2].username}</h3>
+                  <div className="mt-2"><NivelBadge nivel={ranking[2].nivel} size="sm" /></div>
+                  <div className="mt-3 bg-white/5 text-white/80 px-3 py-1 rounded-full text-sm font-bold">{ranking[2].pontos_totais} pts</div>
+                </div>
               </div>
             </div>
           </div>
