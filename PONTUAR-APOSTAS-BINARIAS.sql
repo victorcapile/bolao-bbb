@@ -49,8 +49,7 @@ BEGIN
 
         -- Adicionar pontos ao perfil do usuário
         UPDATE profiles
-        SET pontos_totais = pontos_totais + pontos_ganhos,
-            acertos = acertos + 1
+        SET pontos_totais = pontos_totais + pontos_ganhos
         WHERE id = aposta_record.user_id;
 
         RAISE NOTICE '💰 Pontos adicionados ao perfil do usuário';

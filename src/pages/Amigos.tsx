@@ -7,6 +7,7 @@ interface ApostaComDetalhes extends Aposta {
   username: string;
   avatar_url: string | null;
   participante_nome: string;
+  participante_foto_url?: string | null;
   prova_descricao: string;
   prova_tipo: string;
 }
@@ -89,6 +90,7 @@ export default function Amigos() {
           username: profile?.username || 'Usuário',
           avatar_url: profile?.avatar_url || null,
           participante_nome: aposta.resposta_binaria ? aposta.resposta_binaria.toUpperCase() : (participante?.nome || 'N/A'),
+          participante_foto_url: participante?.foto_url || null,
           prova_descricao: prova?.descricao || prova?.pergunta || '',
           prova_tipo: prova?.tipo || '',
         };
@@ -239,152 +241,102 @@ export default function Amigos() {
                   </span>
                 </div>
 
-                {/* Agrupar por participante */}
+                {/* Agrupar por usuário (quem votou -> em quem votou) */}
                 {(() => {
-                  const votosPorParticipante: Record<string, typeof apostasProva> = {};
+                  const votosPorUsuario: Record<string, typeof apostasProva> = {};
+                  const usuarioInfo: Record<string, { username: string; avatar_url: string | null }> = {};
+
                   apostasProva.forEach(aposta => {
-                    if (!votosPorParticipante[aposta.participante_nome]) {
-                      votosPorParticipante[aposta.participante_nome] = [];
+                    if (!votosPorUsuario[aposta.user_id]) votosPorUsuario[aposta.user_id] = [];
+                    votosPorUsuario[aposta.user_id].push(aposta);
+                    if (!usuarioInfo[aposta.user_id]) {
+                      usuarioInfo[aposta.user_id] = { username: aposta.username, avatar_url: aposta.avatar_url };
                     }
-                    votosPorParticipante[aposta.participante_nome].push(aposta);
                   });
+
+                  const usuariosOrdenados = Object.entries(votosPorUsuario).sort((a, b) => b[1].length - a[1].length);
 
                   return (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {Object.entries(votosPorParticipante)
-                        .sort((a, b) => b[1].length - a[1].length)
-                        .map(([participanteNome, votos]) => {
-                          const isBinaryVote = participanteNome === 'SIM' || participanteNome === 'NÃO' || participanteNome === 'NAO';
-                          const isSimVote = participanteNome === 'SIM';
+                      {usuariosOrdenados.map(([userId, votos]) => {
+                        const info = usuarioInfo[userId];
+                        const isCurrentUser = user?.id === userId;
 
-                          return (
-                          <div key={participanteNome} className={`rounded-xl border overflow-hidden ${
-                            isBinaryVote
-                              ? isSimVote
-                                ? 'bg-green-500/10 border-green-500/30'
-                                : 'bg-red-500/10 border-red-500/30'
-                              : 'bg-white/5 border-white/10'
-                          }`}>
-                            <div className={`px-4 py-2 border-b flex items-center justify-between ${
-                              isBinaryVote
-                                ? isSimVote
-                                  ? 'bg-green-500/20 border-green-500/30'
-                                  : 'bg-red-500/20 border-red-500/30'
-                                : 'bg-white/5 border-white/10'
-                            }`}>
-                              <h3 className={`font-bold text-sm flex items-center gap-2 ${
-                                isBinaryVote
-                                  ? isSimVote
-                                    ? 'text-green-300'
-                                    : 'text-red-300'
-                                  : 'text-white'
-                              }`}>
-                                {isBinaryVote && (
-                                  <span className="text-lg">
-                                    {isSimVote ? '✓' : '✕'}
-                                  </span>
+                        return (
+                          <div key={userId} className={`rounded-xl border overflow-hidden ${isCurrentUser ? 'bg-purple-500/10 border-purple-400/30' : 'bg-white/5 border-white/10'}`}>
+                            <div className={`px-4 py-3 border-b flex items-center justify-between ${isCurrentUser ? 'bg-purple-500/20' : 'bg-white/5'}`}>
+                              <div className="flex items-center gap-3">
+                                {info.avatar_url ? (
+                                  <img src={info.avatar_url} alt={info.username} className="w-10 h-10 rounded-full object-cover border border-white/10" />
+                                ) : (
+                                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm">
+                                    {info.username?.charAt(0).toUpperCase()}
+                                  </div>
                                 )}
-                                {participanteNome}
-                              </h3>
-                              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                                isBinaryVote
-                                  ? isSimVote
-                                    ? 'bg-green-500/30 text-green-200'
-                                    : 'bg-red-500/30 text-red-200'
-                                  : 'bg-white/10 text-white'
-                              }`}>
-                                {votos.length}
-                              </span>
+                                <div className="min-w-0">
+                                  <p className={`font-bold text-sm truncate ${isCurrentUser ? 'text-purple-200' : 'text-white'}`}>@{info.username}</p>
+                                  <p className="text-white/60 text-xs">{votos.length} voto{votos.length > 1 ? 's' : ''}</p>
+                                </div>
+                              </div>
+                              <div className="text-xs text-white/40 px-2 py-0.5 rounded-md">{getTipoProvaLabel(prova.tipo)}</div>
                             </div>
+
                             <div className="p-3 space-y-2">
-                              {votos.map((aposta) => {
-                                const isMyVote = aposta.user_id === user?.id;
+                              {votos.map(aposta => {
                                 const reacoesAposta = getReacoesAposta(aposta.id);
 
                                 return (
-                                  <div
-                                    key={aposta.id}
-                                    className={`relative rounded-lg p-2 transition-all ${isMyVote
-                                        ? 'bg-purple-500/20 border border-purple-400/30'
-                                        : 'bg-white/5 border border-white/5 hover:bg-white/10'
-                                      }`}
-                                  >
-                                    <div className="flex items-start gap-2">
-                                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                                        {aposta.avatar_url ? (
-                                          <img
-                                            src={aposta.avatar_url}
-                                            alt={aposta.username}
-                                            className="w-8 h-8 rounded-full object-cover border border-white/10 shrink-0"
-                                          />
+                                  <div key={aposta.id} className="flex items-center justify-between gap-3 p-2 rounded-lg bg-white/3 border border-white/5">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                      <div className="flex items-center gap-3 min-w-0">
+                                        {aposta.participante_foto_url ? (
+                                          <img src={aposta.participante_foto_url} alt={aposta.participante_nome} className="w-6 h-6 rounded-full object-cover" />
                                         ) : (
-                                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xs shrink-0">
-                                            {aposta.username.charAt(0).toUpperCase()}
+                                          <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-white text-xs font-semibold">
+                                            {aposta.participante_nome?.charAt(0)}
                                           </div>
                                         )}
-                                        <div className="min-w-0 flex-1">
-                                          <p className={`font-bold text-sm truncate ${isMyVote ? 'text-purple-200' : 'text-white'}`}>
-                                            @{aposta.username}
-                                          </p>
+                                        <div className="flex flex-col min-w-0">
+                                          <span className="text-sm font-semibold truncate text-white">{aposta.participante_nome}</span>
+                                          <span className="text-xs text-white/60 truncate">{aposta.prova_descricao}</span>
                                         </div>
                                       </div>
                                     </div>
 
-                                    {/* Reações - Sempre visíveis */}
-                                    {!isMyVote && (
-                                      <div className="mt-2 flex gap-1 flex-wrap">
-                                        {['like', 'fire', 'thinking', 'skull', 'clown']
-                                          .sort((a, b) => {
-                                            const reacaoA = reacoesAposta.find(r => r.tipo === a);
-                                            const reacaoB = reacoesAposta.find(r => r.tipo === b);
-                                            const userReactedA = reacaoA?.userReacted || false;
-                                            const userReactedB = reacaoB?.userReacted || false;
-
-                                            // Reações do usuário primeiro
-                                            if (userReactedA && !userReactedB) return -1;
-                                            if (!userReactedA && userReactedB) return 1;
-
-                                            // Depois por contagem
-                                            const countA = reacaoA?.count || 0;
-                                            const countB = reacaoB?.count || 0;
-                                            if (countA > countB) return -1;
-                                            if (countA < countB) return 1;
-
-                                            return 0;
-                                          })
+                                    <div className="flex items-center gap-2">
+                                      {/* Reações (pequenas) */}
+                                      <div className="flex gap-1">
+                                        {(['like', 'fire', 'thinking', 'skull', 'clown'] as TipoReacao[])
+                                          .filter(t => reacoesAposta.some(r => r.tipo === t))
                                           .map(tipo => {
-                                            const reacao = reacoesAposta.find(r => r.tipo === tipo);
-                                            const count = reacao?.count || 0;
-                                            const userReacted = reacao?.userReacted || false;
+                                            const r = reacoesAposta.find(x => x.tipo === tipo);
+                                            const count = r?.count || 0;
+                                            const userReacted = r?.userReacted || false;
 
                                             return (
                                               <button
                                                 key={tipo}
-                                                onClick={() => toggleReacao(aposta.id, tipo as TipoReacao)}
-                                                className={`flex items-center gap-1 px-2 py-1 rounded-full text-sm transition-all ${
+                                                onClick={() => toggleReacao(aposta.id, tipo)}
+                                                className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs transition-all ${
                                                   userReacted
-                                                    ? 'bg-gradient-to-r from-purple-500/30 to-pink-500/30 border border-purple-500/50 scale-105'
-                                                    : 'bg-white/5 border border-white/10 hover:bg-white/10 hover:scale-105'
+                                                    ? 'bg-gradient-to-r from-purple-500/30 to-pink-500/30 border border-purple-500/50'
+                                                    : 'bg-white/5 border border-white/10 hover:bg-white/10'
                                                 }`}
                                               >
-                                                <span>{getEmojiReacao(tipo as TipoReacao)}</span>
-                                                {count > 0 && (
-                                                  <span className={`text-xs font-medium ${userReacted ? 'text-purple-200' : 'text-white/60'}`}>
-                                                    {count}
-                                                  </span>
-                                                )}
+                                                <span>{getEmojiReacao(tipo)}</span>
+                                                <span className="text-white/60">{count}</span>
                                               </button>
                                             );
                                           })}
                                       </div>
-                                    )}
+                                    </div>
                                   </div>
                                 );
                               })}
                             </div>
                           </div>
                         );
-                        })}
+                      })}
                     </div>
                   );
                 })()}
